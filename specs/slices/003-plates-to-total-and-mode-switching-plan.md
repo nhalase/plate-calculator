@@ -2,19 +2,13 @@
 
 ## Status
 
-Ready for approval
+Approved and implemented
 
 ## Source specification
 
 [Slice 003: Plates to Total Weight and Mode Switching](003-plates-to-total-and-mode-switching.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
-
-## Prompt used to generate this plan
-
-```text
-The slice looks good. Following the established pattern, write a plan for slice 3.
-```
 
 ## Scope
 

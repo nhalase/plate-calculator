@@ -2,19 +2,13 @@
 
 ## Status
 
-Ready for approval
+Approved and implemented
 
 ## Source specification
 
 [Slice 002: Target Weight to Plates UI](002-target-to-plates-ui.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
-
-## Prompt used to generate this plan
-
-```text
-This slice looks good. Generate the plan to implement it now.
-```
 
 ## Scope
 
