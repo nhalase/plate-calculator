@@ -56,6 +56,34 @@ input:focus-visible {
   letter-spacing: -0.04em;
 }
 
+.mode-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-block-end: 1rem;
+  padding: 0.3rem;
+  border: 1px solid #cad6ce;
+  border-radius: 1rem;
+  background: #e3eae5;
+}
+
+.mode-selector__choice {
+  min-width: 0;
+  padding: 0.65rem 0.5rem;
+  color: #52645b;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.mode-selector__choice[aria-pressed="true"] {
+  border-color: #bac9bf;
+  color: #17201c;
+  background: #ffffff;
+  box-shadow: 0 0.2rem 0.75rem rgb(29 47 39 / 10%);
+}
+
 .eyebrow {
   margin: 0;
   color: #52645b;
@@ -71,7 +99,9 @@ input:focus-visible {
 }
 
 .target-section,
-.result-section {
+.result-section,
+.total-section,
+.plate-control-section {
   min-width: 0;
   padding: clamp(1rem, 5vw, 1.5rem);
   border: 1px solid #d4ddd7;
@@ -81,7 +111,9 @@ input:focus-visible {
 }
 
 .target-section h2,
-.result-section h2 {
+.result-section h2,
+.total-section h2,
+.plate-control-section h2 {
   margin: 0;
   color: #52645b;
   font-size: 0.85rem;
@@ -161,6 +193,77 @@ input:focus-visible {
   gap: 0.75rem;
 }
 
+.reverse-calculator {
+  min-width: 0;
+}
+
+.total-section,
+.plate-control-section {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.current-total {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.4rem;
+  color: #17201c;
+  font-size: clamp(3rem, 16vw, 5rem);
+  font-weight: 750;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.symmetry-note,
+.empty-plates {
+  margin: 0;
+  color: #52645b;
+  line-height: 1.45;
+}
+
+.add-plate-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.add-plate-controls button {
+  min-width: 0;
+  padding: 0.75rem 0.35rem;
+  border-color: #cad6ce;
+  color: #265d47;
+  background: #eef5f0;
+  font-weight: 750;
+}
+
+.selected-plate-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(6rem, 100%), 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.selected-plate-controls button {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+  padding: 0.65rem 0.5rem;
+  border-color: #cad6ce;
+  color: #17201c;
+  background: #f4f7f4;
+  font-weight: 750;
+}
+
+.selected-plate-controls button span:last-child {
+  color: #52645b;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .plate-result {
   display: block;
   max-width: 100%;
@@ -201,7 +304,9 @@ input:focus-visible {
   }
 
   .target-section,
-  .result-section {
+  .result-section,
+  .total-section,
+  .plate-control-section {
     padding: 1rem;
   }
 }

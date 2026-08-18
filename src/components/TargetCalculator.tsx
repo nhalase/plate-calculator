@@ -39,6 +39,10 @@ const initialState: TargetCalculatorState = {
   configuration: 'default',
 }
 
+export interface TargetCalculatorProps {
+  active?: boolean
+}
+
 function targetCalculatorReducer(
   state: TargetCalculatorState,
   action: TargetCalculatorAction,
@@ -112,7 +116,7 @@ function parseRequestedTarget(draft: string): number | null {
   return Number.isFinite(requested) ? requested : null
 }
 
-export function TargetCalculator() {
+export function TargetCalculator({ active = true }: TargetCalculatorProps = {}) {
   const [state, dispatch] = useReducer(targetCalculatorReducer, initialState)
   const inputRef = useRef<HTMLInputElement>(null)
   const editingSessionCompleted = useRef(false)
@@ -126,6 +130,15 @@ export function TargetCalculator() {
     inputRef.current?.focus()
     inputRef.current?.select()
   }, [state.editing])
+
+  useEffect(() => {
+    if (active || !state.editing) {
+      return
+    }
+
+    editingSessionCompleted.current = true
+    dispatch({ type: 'cancel-edit' })
+  }, [active, state.editing])
 
   const optimizationAvailable = hasOptimization(state.activeTarget)
   const plates =
@@ -188,10 +201,21 @@ export function TargetCalculator() {
                 onChange={(event) =>
                   dispatch({ type: 'change-draft', value: event.target.value })
                 }
-                onBlur={() => {
+                onBlur={(event) => {
                   if (editingSessionCompleted.current) {
                     return
                   }
+
+                  if (
+                    event.relatedTarget instanceof HTMLElement &&
+                    event.relatedTarget.dataset.calculatorMode ===
+                      'plates-to-total'
+                  ) {
+                    editingSessionCompleted.current = true
+                    dispatch({ type: 'cancel-edit' })
+                    return
+                  }
+
                   commitDraft()
                 }}
                 onKeyDown={(event) => {
