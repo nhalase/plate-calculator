@@ -7,6 +7,7 @@ import {
   normalizeTargetWeight,
 } from '../domain/calculations'
 import { BAR_WEIGHT } from '../domain/plates'
+import { Barbell } from './Barbell'
 
 const TARGET_STEP = 5
 const DECIMAL_INPUT = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/
@@ -276,6 +277,12 @@ export function TargetCalculator({ active = true }: TargetCalculatorProps = {}) 
         <output className="plate-result" aria-live="polite">
           {plateText}
         </output>
+
+        <Barbell
+          mode="readonly"
+          plates={plates}
+          accessibleLabel="Plates required on one side"
+        />
 
         {optimizationAvailable && state.configuration === 'default' && (
           <button

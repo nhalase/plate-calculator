@@ -238,30 +238,131 @@ input:focus-visible {
   font-weight: 750;
 }
 
-.selected-plate-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(6rem, 100%), 1fr));
-  gap: 0.5rem;
+.barbell {
   min-width: 0;
 }
 
-.selected-plate-controls button {
-  display: grid;
-  min-width: 0;
-  gap: 0.15rem;
-  padding: 0.65rem 0.5rem;
-  border-color: #cad6ce;
-  color: #17201c;
+.barbell__viewport {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #cad6ce;
+  border-radius: 0.85rem;
   background: #f4f7f4;
-  font-weight: 750;
+  overscroll-behavior-inline: contain;
+  scrollbar-color: #8fa398 transparent;
+  scrollbar-width: thin;
 }
 
-.selected-plate-controls button span:last-child {
-  color: #52645b;
+.barbell__viewport[data-overflowing="true"] {
+  box-shadow: inset -1rem 0 1rem -1rem rgb(23 32 28 / 55%);
+}
+
+.barbell__viewport:focus-visible {
+  outline: 3px solid #265d47;
+  outline-offset: 3px;
+}
+
+.barbell__track {
+  position: relative;
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  height: 158px;
+  align-items: center;
+  padding: 10px;
+}
+
+.barbell__shaft,
+.barbell__sleeve-end {
+  z-index: 0;
+  display: block;
+  flex: 0 0 auto;
+  height: 10px;
+  border-block: 1px solid #6d7973;
+  background: #aab4af;
+}
+
+.barbell__shaft {
+  width: 36px;
+  border-inline-start: 1px solid #6d7973;
+  border-radius: 999px 0 0 999px;
+}
+
+.barbell__collar {
+  z-index: 2;
+  display: block;
+  width: 12px;
+  height: 62px;
+  flex: 0 0 auto;
+  border: 1px solid #525f58;
+  border-radius: 0.25rem;
+  background: #7f8d86;
+}
+
+.barbell__sleeve-end {
+  width: 64px;
+  border-inline-end: 1px solid #6d7973;
+  border-radius: 0 999px 999px 0;
+}
+
+.barbell__plates {
+  z-index: 1;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  background: linear-gradient(
+    transparent calc(50% - 5px),
+    #aab4af calc(50% - 5px),
+    #aab4af calc(50% + 5px),
+    transparent calc(50% + 5px)
+  );
+}
+
+.barbell__plate {
+  display: inline-flex;
+  width: 44px;
+  min-width: 44px;
+  height: var(--plate-height);
+  min-height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: 2px solid rgb(255 255 255 / 55%);
+  border-radius: 0.4rem;
+  color: var(--plate-label-color);
+  background: var(--plate-background);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 18%);
+  font-weight: 800;
+}
+
+button.barbell__plate {
+  cursor: pointer;
+}
+
+button.barbell__plate:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 5px #17201c,
+    inset 0 0 0 1px rgb(0 0 0 / 18%);
+}
+
+.barbell__plate-label {
   font-size: 0.7rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.barbell__overflow-hint {
+  margin: 0.4rem 0 0;
+  color: #52645b;
+  font-size: 0.75rem;
   font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .plate-result {
@@ -296,6 +397,20 @@ input:focus-visible {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+@media (forced-colors: active) {
+  .barbell__plate {
+    border: 2px solid ButtonText;
+    color: ButtonText;
+    background: ButtonFace;
+    forced-color-adjust: auto;
+  }
+
+  button.barbell__plate:focus-visible {
+    outline: 3px solid Highlight;
+    box-shadow: none;
+  }
 }
 
 @media (max-width: 22rem) {

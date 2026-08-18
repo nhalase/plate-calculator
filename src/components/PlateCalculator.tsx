@@ -9,10 +9,12 @@ import {
   type PlateConfiguration,
   type PlateWeight,
 } from '../domain/plates'
+import { Barbell, type BarbellHandle } from './Barbell'
 
-type PendingFocus =
+type PendingAction =
   | { kind: 'remove'; index: number }
   | { kind: 'add'; weight: PlateWeight }
+  | { kind: 'reveal'; index: number }
   | null
 
 const EMPTY_CONFIGURATION = Object.freeze([]) as PlateConfiguration
@@ -21,26 +23,37 @@ export function PlateCalculator() {
   const [selectedPlates, setSelectedPlates] =
     useState<PlateConfiguration>(EMPTY_CONFIGURATION)
   const addButtonRefs = useRef(new Map<PlateWeight, HTMLButtonElement>())
-  const removeButtonRefs = useRef<Array<HTMLButtonElement | null>>([])
-  const pendingFocus = useRef<PendingFocus>(null)
+  const barbellRef = useRef<BarbellHandle>(null)
+  const pendingAction = useRef<PendingAction>(null)
 
   const total = calculateTotalWeight(selectedPlates)
 
   useLayoutEffect(() => {
-    const target = pendingFocus.current
-    pendingFocus.current = null
+    const target = pendingAction.current
+    pendingAction.current = null
 
     if (target?.kind === 'remove') {
-      removeButtonRefs.current[target.index]?.focus()
+      barbellRef.current?.focusPlate(target.index)
     }
 
     if (target?.kind === 'add') {
       addButtonRefs.current.get(target.weight)?.focus()
     }
+
+    if (target?.kind === 'reveal') {
+      barbellRef.current?.revealPlate(target.index)
+    }
   }, [selectedPlates])
 
   function addPlate(weight: PlateWeight) {
-    setSelectedPlates((current) => sortPlates([...current, weight]))
+    setSelectedPlates((current) => {
+      const next = sortPlates([...current, weight])
+      pendingAction.current = {
+        kind: 'reveal',
+        index: next.lastIndexOf(weight),
+      }
+      return next
+    })
   }
 
   function removePlate(index: number, weight: PlateWeight) {
@@ -49,7 +62,7 @@ export function PlateCalculator() {
         current.filter((_, candidateIndex) => candidateIndex !== index),
       )
 
-      pendingFocus.current =
+      pendingAction.current =
         next.length === 0
           ? { kind: 'add', weight }
           : { kind: 'remove', index: Math.min(index, next.length - 1) }
@@ -58,10 +71,11 @@ export function PlateCalculator() {
     })
   }
 
-  const occurrences = new Map<PlateWeight, number>()
-
   return (
-    <section className="calculator reverse-calculator" aria-labelledby="reverse-heading">
+    <section
+      className="calculator reverse-calculator"
+      aria-labelledby="reverse-heading"
+    >
       <section className="total-section">
         <h2 id="reverse-heading">Current total</h2>
         <output
@@ -105,31 +119,16 @@ export function PlateCalculator() {
         aria-labelledby="selected-heading"
       >
         <h2 id="selected-heading">Plates on one side</h2>
-        {selectedPlates.length === 0 ? (
+        {selectedPlates.length === 0 && (
           <p className="empty-plates">No plates loaded</p>
-        ) : (
-          <div className="selected-plate-controls">
-            {selectedPlates.map((weight, index) => {
-              const occurrence = (occurrences.get(weight) ?? 0) + 1
-              occurrences.set(weight, occurrence)
-
-              return (
-                <button
-                  key={`${weight}-${occurrence}`}
-                  ref={(element) => {
-                    removeButtonRefs.current[index] = element
-                  }}
-                  type="button"
-                  aria-label={`Remove ${weight} lb plate`}
-                  onClick={() => removePlate(index, weight)}
-                >
-                  <span>{weight} lb</span>
-                  <span aria-hidden="true">Remove</span>
-                </button>
-              )
-            })}
-          </div>
         )}
+        <Barbell
+          ref={barbellRef}
+          mode="removable"
+          plates={selectedPlates}
+          accessibleLabel="Plates on one side"
+          onRemovePlate={removePlate}
+        />
       </section>
     </section>
   )

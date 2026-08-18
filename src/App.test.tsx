@@ -195,4 +195,45 @@ describe('Slice 003 application mode integration', () => {
       '45 lb',
     )
   })
+
+  it('S4-AC-013 preserves independent target and reverse visualizations across modes', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await commitTarget('165')
+    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    expect(
+      screen
+        .getByRole('img', { name: /Plates required on one side/ })
+        .querySelectorAll('[data-plate-weight]'),
+    ).toHaveLength(2)
+
+    await user.click(reverseModeButton())
+    await user.click(screen.getByRole('button', { name: 'Add 45 lb plate' }))
+    await user.click(screen.getByRole('button', { name: 'Add 10 lb plate' }))
+    expect(
+      screen
+        .getByRole('group', { name: 'Plates on one side' })
+        .querySelectorAll('[data-plate-weight]'),
+    ).toHaveLength(2)
+
+    await user.click(targetModeButton())
+    const targetVisual = screen.getByRole('img', {
+      name: /Plates required on one side/,
+    })
+    expect(
+      [...targetVisual.querySelectorAll<HTMLElement>('[data-plate-weight]')].map(
+        (plate) => plate.dataset.plateWeight,
+      ),
+    ).toEqual(['35', '25'])
+
+    await user.click(reverseModeButton())
+    const reverseVisual = screen.getByRole('group', {
+      name: 'Plates on one side',
+    })
+    expect(
+      [...reverseVisual.querySelectorAll<HTMLElement>('[data-plate-weight]')].map(
+        (plate) => plate.dataset.plateWeight,
+      ),
+    ).toEqual(['45', '10'])
+  })
 })

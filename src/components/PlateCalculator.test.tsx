@@ -161,3 +161,103 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     expect(totalOutput()).toHaveAttribute('aria-live', 'polite')
   })
 })
+
+function reverseVisualization() {
+  return screen.getByRole('group', { name: 'Plates on one side' })
+}
+
+function reverseVisualPlates() {
+  return [
+    ...reverseVisualization().querySelectorAll<HTMLElement>(
+      '[data-plate-weight]',
+    ),
+  ]
+}
+
+describe('Slice 004 reverse visualization integration', () => {
+  it('S4-AC-005 renders empty hardware with the empty reverse state', () => {
+    const { container } = render(<PlateCalculator />)
+
+    expect(totalOutput()).toHaveTextContent('45 lb')
+    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(reverseVisualPlates()).toHaveLength(0)
+    expect(container.querySelector('[data-barbell-part="shaft"]')).not.toBeNull()
+    expect(container.querySelector('[data-barbell-part="collar"]')).not.toBeNull()
+    expect(container.querySelector('[data-barbell-part="sleeve"]')).not.toBeNull()
+  })
+
+  it('S4-AC-006 synchronizes graphical additions, colors, total, and add focus', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    await user.click(addButton(45))
+    const add10 = addButton(10)
+    await user.click(add10)
+
+    expect(totalOutput()).toHaveTextContent('155 lb')
+    expect(add10).toHaveFocus()
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateWeight)).toEqual([
+      '45',
+      '10',
+    ])
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateColor)).toEqual([
+      'red',
+      'green',
+    ])
+    expect(screen.getByRole('button', { name: 'Remove 45 lb plate' })).toHaveTextContent(
+      '45 lb',
+    )
+  })
+
+  it('S4-AC-007 keeps graphical order and color independent of insertion order', async () => {
+    render(<PlateCalculator />)
+
+    await addPlates([10, 45, 5, 25])
+
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateWeight)).toEqual([
+      '45',
+      '25',
+      '10',
+      '5',
+    ])
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateColor)).toEqual([
+      'red',
+      'yellow',
+      'green',
+      'black',
+    ])
+  })
+
+  it('S4-AC-008 removes a graphical plate, updates total, and focuses the next plate', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    await addPlates([45, 25, 10])
+    expect(totalOutput()).toHaveTextContent('205 lb')
+
+    await user.click(screen.getByRole('button', { name: 'Remove 25 lb plate' }))
+
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateWeight)).toEqual([
+      '45',
+      '10',
+    ])
+    expect(totalOutput()).toHaveTextContent('155 lb')
+    expect(screen.getByRole('button', { name: 'Remove 10 lb plate' })).toHaveFocus()
+  })
+
+  it('S4-AC-009 keeps duplicate graphical plates independently removable', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    await addPlates([45, 45])
+    const duplicates = screen.getAllByRole('button', {
+      name: 'Remove 45 lb plate',
+    })
+
+    expect(duplicates).toHaveLength(2)
+    expect(duplicates.every((plate) => plate.dataset.plateColor === 'red')).toBe(
+      true,
+    )
+    await user.click(duplicates[0])
+    expect(
+      screen.getAllByRole('button', { name: 'Remove 45 lb plate' }),
+    ).toHaveLength(1)
+  })
+})

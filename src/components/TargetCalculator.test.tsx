@@ -272,3 +272,82 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     expect(screen.queryByText(/Nearest loadable weight/i)).not.toBeInTheDocument()
   })
 })
+
+function targetVisualization() {
+  return screen.getByRole('img', { name: /Plates required on one side/ })
+}
+
+function visualWeights() {
+  return [
+    ...targetVisualization().querySelectorAll<HTMLElement>(
+      '[data-plate-weight]',
+    ),
+  ].map((plate) => plate.dataset.plateWeight)
+}
+
+describe('Slice 004 target visualization integration', () => {
+  it('S4-AC-001 renders an empty read-only barbell for the initial target', () => {
+    render(<TargetCalculator />)
+
+    expect(screen.getByText('No plates required')).toBeInTheDocument()
+    expect(targetVisualization()).toHaveAccessibleName(
+      'Plates required on one side. One side: no plates',
+    )
+    expect(visualWeights()).toEqual([])
+    expect(
+      screen.queryByRole('button', { name: /^Remove / }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('S4-AC-002 keeps default text and visual plates synchronized', async () => {
+    render(<TargetCalculator />)
+
+    await commitTarget('155')
+
+    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['45', '10'])
+    const plates = targetVisualization().querySelectorAll<HTMLElement>(
+      '[data-plate-weight]',
+    )
+    expect([...plates].map((plate) => plate.dataset.plateColor)).toEqual([
+      'red',
+      'green',
+    ])
+    expect(Number.parseInt(plates[0].style.getPropertyValue('--plate-height'))).toBeGreaterThan(
+      Number.parseInt(plates[1].style.getPropertyValue('--plate-height')),
+    )
+    expect(
+      screen.queryByRole('button', { name: /^Remove / }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('S4-AC-003 replaces default text and graphics together on Optimize', async () => {
+    const user = userEvent.setup()
+    render(<TargetCalculator />)
+    await commitTarget('165')
+    expect(visualWeights()).toEqual(['45', '10', '5'])
+
+    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+
+    expect(targetButton()).toHaveTextContent('165')
+    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['35', '25'])
+    expect(
+      [...targetVisualization().querySelectorAll<HTMLElement>('[data-plate-color]')].map(
+        (plate) => plate.dataset.plateColor,
+      ),
+    ).toEqual(['blue', 'yellow'])
+  })
+
+  it('S4-AC-004 resets text and graphics to the new default after a target change', async () => {
+    const user = userEvent.setup()
+    render(<TargetCalculator />)
+    await commitTarget('165')
+    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+
+    await user.click(increaseButton())
+
+    expect(screen.getByText('45 + 10 + 5 + 2.5')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['45', '10', '5', '2.5'])
+  })
+})

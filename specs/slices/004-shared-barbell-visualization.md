@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for behavioral review
+Approved and implemented
 
 ## Goal
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for approval
+Approved and implemented
 
 ## Source specification
 
