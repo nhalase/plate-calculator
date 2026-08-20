@@ -93,4 +93,5 @@ This project is developed in vertical slices from explicit product and engineeri
 - [Requirements](specs/requirements.md)
 - [Architecture](specs/architecture.md)
 - [Architecture decision records](specs/adr)
-- [Slice specifications and implementation plans](specs/slices)
+- [Slice specifications](specs/slices)
+- [Implementation plans](specs/plans)

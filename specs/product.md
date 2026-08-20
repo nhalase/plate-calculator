@@ -23,7 +23,7 @@ The normal result follows the familiar heaviest-first loading pattern. When anot
 
 ### Plates → Total Weight
 
-The user adds plates representing one side of the bar. The application assumes a matching load on the other side and immediately displays the total barbell weight. A displayed plate can be removed with one tap. When the manual selection differs from the greedy, heaviest-first configuration for the same total, an `Optimize` action replaces it with that canonical loading pattern.
+The user adds plates representing one side of the bar. The application assumes a matching load on the other side and immediately displays the total barbell weight. A displayed plate can be removed with one tap. Double-tapping the displayed current total clears every selected plate and returns the calculator to the empty 45 lb bar. When the manual selection differs from the greedy, heaviest-first configuration for the same total, an `Optimize` action replaces it with that canonical loading pattern.
 
 ## Fixed domain assumptions
 
@@ -64,7 +64,7 @@ The interface shows and manipulates plates for one side. The application handles
 
 ### Immediate and reversible
 
-Adding plates, removing plates, changing the target, switching modes, reducing target-mode plate count, and optimizing a manual load take effect immediately. Reversible actions do not require confirmation.
+Adding plates, removing plates, resetting the reverse load from the current total, changing the target, switching modes, reducing target-mode plate count, and optimizing a manual load take effect without confirmation.
 
 ### Clear adjustment
 

@@ -41,6 +41,12 @@ describe('Slice 002 Target Weight to Plates UI', () => {
   it('S2-AC-001 renders the initial empty 45 lb bar without configuration controls', () => {
     render(<TargetCalculator />)
 
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Target weight (tap to change)',
+      }),
+    ).toBeInTheDocument()
     expect(targetButton()).toHaveTextContent('45')
     expect(targetButton()).toHaveTextContent('lb')
     expect(screen.getByText('No plates required')).toBeInTheDocument()

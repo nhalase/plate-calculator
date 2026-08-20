@@ -30,7 +30,7 @@ export function App() {
       </div>
 
       <div hidden={mode !== 'plates-to-total'}>
-        <PlateCalculator />
+        <PlateCalculator active={mode === 'plates-to-total'} />
       </div>
     </main>
   )

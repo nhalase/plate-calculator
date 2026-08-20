@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 006: PWA, Offline Operation, and GitHub Pages](006-pwa-offline-and-github-pages.md)
+[Slice 006: PWA, Offline Operation, and GitHub Pages](../slices/006-pwa-offline-and-github-pages.md)
 
 This plan implements the approved Slice 006 release boundary without changing the completed calculator domain, React state model, interaction behavior, or Slice 005 visual design.
 
@@ -43,7 +43,7 @@ Action revisions may be pinned to immutable commit SHAs during implementation. I
 - After implementation and every local check passes, change to `Approved and implemented`.
 - Do not mark deployed verification complete until an explicitly authorized push has produced a successful Pages deployment.
 
-#### `specs/slices/006-pwa-offline-and-github-pages-plan.md`
+#### `specs/plans/006-pwa-offline-and-github-pages-plan.md`
 
 - This file records the implementation boundary and verification mapping.
 - Keep `Ready for approval` until the user approves implementation.
@@ -405,12 +405,12 @@ No delivery state enters React component state. No calculator state is written t
 | S6-AC-006 | Config and built-worker checks prove auto-update, client claim, skip waiting, and cleanup; the two-build browser fixture proves replacement behavior. |
 | S6-AC-007 | Real-browser cached offline reload verifies the controlled app launches at the initial 45 lb target state. |
 | S6-AC-008 | Real-browser offline target workflow exercises rounding, invalid recovery, greedy output, Reduce plates, controls, and visualization. |
-| S6-AC-009 | Real-browser offline reverse workflow exercises switching, add/remove, duplicates, Optimize, overflow, and focus. |
+| S6-AC-009 | Real-browser offline reverse workflow exercises switching, add/remove/reset, duplicates, Optimize, overflow, and focus. |
 | S6-AC-010 | Production browser run with service-worker capability disabled or registration blocked confirms online progressive enhancement. |
 | S6-AC-011 | `verify:pwa` inspects workflow structure; a later authorized main push verifies the actual Actions run and deployed URL. |
-| S6-AC-012 | Existing 131-test baseline remains green; source inspection confirms no storage adapter or application-state persistence. |
+| S6-AC-012 | Current 138-test suite remains green; source inspection confirms no storage adapter or application-state persistence. |
 
-The existing test count may increase only if focused configuration tests provide value beyond `verify:pwa`. Do not add jsdom tests that merely restate generated artifact assertions.
+The suite increased from the original 131-test Slice 006 baseline to 138 after focused heading and current-total reset acceptance tests were added. Do not add jsdom tests that merely restate generated artifact assertions.
 
 ## Local verification sequence
 

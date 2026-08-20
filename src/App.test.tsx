@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -224,6 +224,46 @@ describe('Slice 003 application mode integration', () => {
     expect(screen.getByText('No plates loaded')).toBeInTheDocument()
     expect(screen.getByRole('status', { name: 'Current total' })).toHaveTextContent(
       '45 lb',
+    )
+  })
+
+  it('S3-AC-016 resets reverse plates while preserving target state', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await commitTarget('155')
+    await user.click(reverseModeButton())
+    await user.click(screen.getByRole('button', { name: 'Add 45 lb plate' }))
+    const reset = screen.getByRole('button', {
+      name: 'Current total 135 pounds. Reset plates',
+    })
+
+    fireEvent.click(reset, { detail: 1 })
+    fireEvent.click(reset, { detail: 1 })
+    expect(screen.getByRole('status', { name: 'Current total' })).toHaveTextContent(
+      '45 lb',
+    )
+
+    await user.click(targetModeButton())
+    expect(targetButton()).toHaveTextContent('155')
+    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+  })
+
+  it('S3-AC-016 cancels a pending reset activation across mode changes', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(reverseModeButton())
+    await user.click(screen.getByRole('button', { name: 'Add 45 lb plate' }))
+    const reset = screen.getByRole('button', {
+      name: 'Current total 135 pounds. Reset plates',
+    })
+    fireEvent.click(reset, { detail: 1 })
+
+    await user.click(targetModeButton())
+    await user.click(reverseModeButton())
+    fireEvent.click(reset, { detail: 1 })
+
+    expect(screen.getByRole('status', { name: 'Current total' })).toHaveTextContent(
+      '135 lb',
     )
   })
 

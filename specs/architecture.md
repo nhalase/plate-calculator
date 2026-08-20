@@ -127,7 +127,7 @@ Vite must be configured for the repository project path rather than assuming `/`
 ## Testing strategy
 
 - Vitest unit tests cover every calculation acceptance criterion and edge case.
-- UI tests in later slices cover mode controls, direct-entry commit/recovery, add/remove behavior, target-mode Reduce plates visibility, reverse-mode Optimize behavior, focus recovery, and stable action-slot layout.
+- UI tests in later slices cover mode controls, direct-entry commit/recovery, add/remove behavior, current-total reset behavior, target-mode Reduce plates visibility, reverse-mode Optimize behavior, focus recovery, and stable action-slot layout.
 - Production checks cover build success, GitHub Pages base paths, manifest validity, service-worker registration, installability, and offline reload.
 - Test names should include the relevant acceptance-criteria identifiers where practical.
 

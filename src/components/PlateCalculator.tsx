@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
 
 import {
   calculateDefaultPlates,
@@ -19,6 +19,11 @@ type PendingAction =
   | null
 
 const EMPTY_CONFIGURATION = Object.freeze([]) as PlateConfiguration
+const RESET_ACTIVATION_WINDOW_MS = 500
+
+export interface PlateCalculatorProps {
+  active?: boolean
+}
 
 function configurationsMatch(
   left: PlateConfiguration,
@@ -30,12 +35,13 @@ function configurationsMatch(
   )
 }
 
-export function PlateCalculator() {
+export function PlateCalculator({ active = true }: PlateCalculatorProps) {
   const [selectedPlates, setSelectedPlates] =
     useState<PlateConfiguration>(EMPTY_CONFIGURATION)
   const addButtonRefs = useRef(new Map<PlateWeight, HTMLButtonElement>())
   const barbellRef = useRef<BarbellHandle>(null)
   const pendingAction = useRef<PendingAction>(null)
+  const pendingResetActivation = useRef<number | null>(null)
 
   const total = calculateTotalWeight(selectedPlates)
   const greedyPlates = calculateDefaultPlates(total)
@@ -61,7 +67,47 @@ export function PlateCalculator() {
     }
   }, [selectedPlates])
 
+  useLayoutEffect(() => {
+    if (!active) {
+      pendingResetActivation.current = null
+    }
+  }, [active])
+
+  function cancelPendingReset() {
+    pendingResetActivation.current = null
+  }
+
+  function resetPlates() {
+    cancelPendingReset()
+    pendingAction.current = null
+
+    if (selectedPlates.length > 0) {
+      setSelectedPlates(EMPTY_CONFIGURATION)
+    }
+  }
+
+  function handleTotalActivation(event: MouseEvent<HTMLButtonElement>) {
+    if (event.detail === 0) {
+      resetPlates()
+      return
+    }
+
+    const activatedAt = Date.now()
+    const previousActivation = pendingResetActivation.current
+
+    if (
+      previousActivation !== null &&
+      activatedAt - previousActivation <= RESET_ACTIVATION_WINDOW_MS
+    ) {
+      resetPlates()
+      return
+    }
+
+    pendingResetActivation.current = activatedAt
+  }
+
   function addPlate(weight: PlateWeight) {
+    cancelPendingReset()
     setSelectedPlates((current) => {
       const next = sortPlates([...current, weight])
       pendingAction.current = {
@@ -73,6 +119,7 @@ export function PlateCalculator() {
   }
 
   function removePlate(index: number, weight: PlateWeight) {
+    cancelPendingReset()
     setSelectedPlates((current) => {
       const next = sortPlates(
         current.filter((_, candidateIndex) => candidateIndex !== index),
@@ -88,6 +135,7 @@ export function PlateCalculator() {
   }
 
   function optimizePlates() {
+    cancelPendingReset()
     pendingAction.current = { kind: 'remove', index: 0 }
     setSelectedPlates(greedyPlates)
   }
@@ -99,12 +147,20 @@ export function PlateCalculator() {
     >
       <section className="total-section">
         <h2 id="reverse-heading">Current total</h2>
-        <output
+        <button
+          type="button"
           className="current-total"
-          aria-labelledby="reverse-heading"
-          aria-live="polite"
+          aria-label={`Current total ${total} pounds. Reset plates`}
+          onClick={handleTotalActivation}
         >
           {total} <span className="target-unit">lb</span>
+        </button>
+        <output
+          className="visually-hidden"
+          aria-label="Current total"
+          aria-live="polite"
+        >
+          {total} lb
         </output>
       </section>
 

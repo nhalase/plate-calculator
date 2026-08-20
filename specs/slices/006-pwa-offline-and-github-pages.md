@@ -239,6 +239,7 @@ From a successfully cached production build, all of the following shall work wit
 - switching to Plates → Total and back without reload;
 - adding every supported denomination, including duplicates;
 - removing individual graphical plates;
+- resetting all selected plates from the current-total control;
 - reverse total calculation;
 - `Optimize` availability and activation;
 - barbell rendering, plate order, plate labels, internal overflow, and focus recovery.
@@ -477,7 +478,7 @@ Maps to REQ-PWA-002.
 ### S6-AC-009 — Complete offline reverse workflow
 
 Given the cached application is offline,
-when the user switches modes, adds, removes, duplicates, and optimizes plates,
+when the user switches modes, adds, removes, duplicates, resets, and optimizes plates,
 then totals, ordering, visualization, internal overflow, action availability, and focus recovery remain correct.
 
 Maps to REQ-PWA-002.

@@ -280,16 +280,26 @@ input:focus-visible,
 
 .current-total {
   display: flex;
+  width: fit-content;
   min-width: 0;
   align-items: baseline;
   gap: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
   color: var(--text);
+  background: transparent;
+  appearance: none;
   font-size: clamp(3.25rem, 17vw, 5rem);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.055em;
   line-height: 1;
+  text-align: left;
+  touch-action: manipulation;
 }
+
+.current-total:active { background: transparent; }
 
 .empty-plates {
   margin: 0;

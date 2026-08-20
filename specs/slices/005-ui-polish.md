@@ -217,7 +217,7 @@ Switching modes shall not animate card height or horizontally slide calculator c
 
 The Target Weight card shall contain:
 
-- the heading `Target Weight`;
+- the heading `Target weight (tap to change)`;
 - the active target as a large white number with a subordinate `lb` unit;
 - the existing direct-entry behavior on the displayed target;
 - a two-column `−5` and `+5` control row.
@@ -238,8 +238,10 @@ Rounding feedback shall appear inside the Target Weight card below the editable 
 The Current total card shall contain:
 
 - the heading `Current total`;
-- the total as a large white number with a subordinate `lb` unit;
+- the total as a large white number with a subordinate `lb` unit, presented as the reset control defined by Slice 003;
 - no explanatory helper copy beneath the total.
+
+The reset control shall retain the same visual hierarchy as the existing total rather than looking like a conventional filled button. It shall introduce no separate icon, Reset label, helper line, confirmation, or card-height change. It shall provide a visible keyboard focus indicator, at least a 44 by 44 CSS-pixel target, and touch behavior that prevents double-tap zoom on the control without disabling normal page scrolling.
 
 The Add a plate card shall contain:
 
@@ -462,7 +464,8 @@ and both controls retain their existing `aria-pressed` behavior.
 ### S5-AC-004 — Target-mode hierarchy
 
 Given the active target is 165 lb,
-then `165` is the dominant value in the Target Weight card,
+then the card heading is `Target weight (tap to change)`,
+and `165` is the dominant value in the Target Weight card,
 and `lb` is visibly associated but subordinate,
 and `−5` and `+5` are equal-size controls,
 and the result card shows `45 + 10 + 5`, the matching visualization, and Reduce plates.
@@ -471,6 +474,7 @@ and the result card shows `45 + 10 + 5`, the matching visualization, and Reduce 
 
 Given reverse mode contains 35 and 25 lb plates,
 then `165` is the dominant value in the Current total card,
+and the total remains visually dominant while acting as the accessible reset control,
 and the Add a plate controls remain ordered `45, 35, 25, 10, 5, 2.5`,
 and the selected-plate card shows blue 35 then yellow 25,
 and Optimize is visible.

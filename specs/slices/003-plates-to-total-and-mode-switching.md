@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Goal
 
-Deliver the second usable calculator workflow and make both calculator modes accessible in one application. A user can switch between Target Weight → Plates and Plates → Total Weight, add or remove plates representing one side of the bar, see the symmetric total update immediately, and normalize a manual selection to the greedy heavy-first configuration for the same total.
+Deliver the second usable calculator workflow and make both calculator modes accessible in one application. A user can switch between Target Weight → Plates and Plates → Total Weight, add, remove, or reset plates representing one side of the bar, see the symmetric total update immediately, and normalize a manual selection to the greedy heavy-first configuration for the same total.
 
 This slice extends the Slice 002 browser application. It defines the complete observable behavior of mode switching and the textual Plates → Total Weight workflow without introducing the shared graphical barbell visualization.
 
@@ -22,7 +22,7 @@ This slice extends the Slice 002 browser application. It defines the complete ob
 
 - REQ-DOM-001 and REQ-DOM-002
 - REQ-CALC-005 through REQ-CALC-007
-- REQ-UI-004, REQ-UI-005, and REQ-UI-007
+- REQ-UI-004, REQ-UI-005, REQ-UI-007, and REQ-UI-008
 - REQ-UX-001
 
 See [requirements.md](../requirements.md), [architecture.md](../architecture.md), [Slice 001](001-calculation-engine.md), and [Slice 002](002-target-to-plates-ui.md).
@@ -92,13 +92,13 @@ The application shall expose these elements in this order:
 
 When Plates → Total Weight is selected, its panel shall expose these elements in this order:
 
-1. Prominent current total including the `lb` unit.
+1. Prominent current-total reset control including the numeric total and `lb` unit.
 2. Add-plate section containing one control for every supported denomination.
 3. Selected-plates section identifying the result as plates on one side.
 4. One independently removable control for each selected plate, or explicit empty-state text.
 5. A fixed-size action slot containing Optimize only when the manual configuration differs from the greedy configuration for the same total.
 
-The Current total card shall not display explanatory helper copy beneath the total.
+The Current total card shall not display explanatory helper copy beneath the total or a separate visible Reset button.
 
 The exact visual styling, capitalization, and punctuation may vary. Visible and accessible wording must communicate the same meaning.
 
@@ -205,7 +205,7 @@ The panel shall:
 - display all six add controls;
 - expose no bar-weight setting;
 - expose no removal controls;
-- expose no Calculate, Apply, Submit, Clear, or Reset action.
+- expose no separate Calculate, Apply, Submit, Clear, or Reset control; the empty current-total reset control remains available as a no-op.
 
 ## Add controls
 
@@ -321,6 +321,27 @@ Required examples:
 | `45, 45` | 225 lb |
 | `45, 35, 2.5` | 210 lb |
 
+## Current-total reset contract
+
+The prominent current-total value in Plates → Total Weight mode shall be the reset target. The target includes the displayed number and its associated `lb` unit and shall retain the established dominant-number presentation.
+
+For primary pointer input, a reset gesture is exactly two activations of that target no more than 500 milliseconds apart. The first activation shall not change state. If more than 500 milliseconds elapse, the pending activation expires; the next activation begins a new sequence. Activations of any other control cancel a pending sequence. The gesture shall work for touch taps and mouse clicks and shall not trigger browser double-tap zoom.
+
+Because reset cannot depend on a pointer-specific gesture, the current-total target shall be a native, focusable control. One semantic activation from Enter, Space, or assistive technology shall reset immediately. Its accessible name shall communicate the current total and the reset action. Total changes shall continue to be announced politely.
+
+Reset shall occur in one state transition and shall:
+
+1. replace the selected-plate collection with an empty collection;
+2. display `No plates loaded`;
+3. derive and display the 45 lb empty-bar total through the existing Slice 001 calculation;
+4. update the shared barbell visualization to the empty bar;
+5. remove Optimize from sight and the accessibility tree while preserving its fixed action slot;
+6. preserve the independent Target → Plates state;
+7. require no confirmation;
+8. leave focus on the current-total reset control.
+
+Resetting an already empty load is a no-op. It shall not announce a false change, move focus, alter the target calculator, or move surrounding content.
+
 ## Reverse-mode optimization contract
 
 The reverse calculator shall derive the canonical configuration as:
@@ -356,6 +377,8 @@ Valid UI interactions shall not send network requests. Domain errors are program
 - Add and removal controls shall use native interactive elements.
 - Every add and removal control shall include the denomination and action in its accessible name.
 - The current total shall have a visible label and be announced politely when it changes.
+- The current-total value shall be a native control whose accessible name communicates both the current total and the reset action.
+- Keyboard and assistive-technology activation shall reset once without requiring a simulated pointer double-tap.
 - Visible text shall explain the one-sided symmetric-loading assumption.
 - Keyboard focus shall remain visible.
 - Focus shall not be lost after a selected plate removes itself.
@@ -372,6 +395,7 @@ At a viewport width of 320 CSS pixels:
 - selected-plate controls shall wrap within their container;
 - primary interactive controls shall have a target size of at least 44 by 44 CSS pixels;
 - current total, denominations, and units shall remain readable without zooming;
+- the current-total reset control shall provide at least a 44 by 44 CSS-pixel target and shall suppress double-tap zoom without suppressing page scrolling elsewhere;
 - no required information shall be available only on hover.
 
 ## Acceptance scenarios
@@ -526,9 +550,27 @@ and the action slot and surrounding content retain their positions.
 
 Maps to REQ-CALC-003 and REQ-CALC-007.
 
+### S3-AC-016 — Reset plates from the current total
+
+Given the reverse calculator contains `45 | 10`,
+and the current total is 155 lb,
+when a pointer activates the current-total value twice within 500 milliseconds,
+then no state changes after the first activation,
+and after the second activation the selected plates are empty,
+and the current total is 45 lb,
+and `No plates loaded` and the empty-bar visualization are displayed,
+and Optimize is absent,
+and focus remains on the current-total reset control.
+
+Given the same loaded state,
+when the focused current-total reset control receives one Enter, Space, or assistive-technology activation,
+then the same reset result occurs immediately.
+
+Maps to REQ-UI-008, REQ-CALC-006, and REQ-UX-001.
+
 ## Required automated tests
 
-Automated component tests shall cover S3-AC-001 through S3-AC-012, S3-AC-014, and S3-AC-015. Tests shall interact through visible controls, accessible roles, names, states, and text rather than component internals.
+Automated component tests shall cover S3-AC-001 through S3-AC-012 and S3-AC-014 through S3-AC-016. Tests shall interact through visible controls, accessible roles, names, states, and text rather than component internals.
 
 Tests shall additionally verify:
 
@@ -539,6 +581,9 @@ Tests shall additionally verify:
 - displayed ordering matches the existing `sortPlates` result;
 - Optimize availability distinguishes non-greedy from greedy-equivalent selections;
 - reverse optimization preserves total, recovers focus, and retains the same action-slot element;
+- one pointer activation does not reset, two timely pointer activations do reset, and an expired pair does not reset;
+- keyboard and assistive-technology activation reset without requiring pointer timing;
+- reset clears duplicates, removes Optimize, preserves target-mode state, retains focus, and is a no-op when already empty;
 - switching modes does not change the URL;
 - the hidden panel is absent from the accessibility tree;
 - Slice 001 and Slice 002 tests pass unchanged.
@@ -583,7 +628,7 @@ This slice does not include:
 - a graphical barbell or graphical plate visualization;
 - denomination colors or graphical relative sizing;
 - drag-and-drop or plate reordering;
-- a Clear or Reset control;
+- a separate visible Clear or Reset control outside the current-total value;
 - configurable bars, plate sets, inventory, or units;
 - asymmetric loading;
 - URL routing or deep links for modes;

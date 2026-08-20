@@ -161,6 +161,20 @@ Acceptance criteria:
 - **AC-UI-004-2:** Removal immediately updates total and visualization.
 - **AC-UI-004-3:** Adding `10, 45, 5, 25` displays `45 | 25 | 10 | 5`.
 
+### REQ-UI-008 — Reset from current total
+
+In Plates → Total Weight mode, the displayed current-total value shall act as the reset control. Two primary pointer activations within 500 milliseconds shall clear every selected plate. A single keyboard or assistive-technology activation shall provide the equivalent non-pointer reset.
+
+Acceptance criteria:
+
+- **AC-UI-008-1:** With `[45, 10]` selected, double-tapping or double-clicking the current-total value clears all plates and changes the total from 155 lb to 45 lb.
+- **AC-UI-008-2:** The first pointer activation alone does not change the selected plates or total.
+- **AC-UI-008-3:** A second pointer activation more than 500 milliseconds later starts a new sequence and does not reset the load.
+- **AC-UI-008-4:** Reset displays `No plates loaded`, removes Optimize if present, and updates the visualization to the empty bar in the same state transition.
+- **AC-UI-008-5:** Reset requires no confirmation and leaves focus on the current-total reset control.
+- **AC-UI-008-6:** Resetting an already empty load is a no-op.
+- **AC-UI-008-7:** The reset control communicates both the current total and its reset purpose accessibly without adding a separate visible Reset button.
+
 ## 5. Shared experience
 
 ### REQ-UI-005 — Mode switching
@@ -187,7 +201,7 @@ The application shall provide a valid manifest, application name, icons, and sta
 
 ### REQ-PWA-002 — Offline operation
 
-After a successful online load has cached the current application assets, every version 1 calculator behavior shall work without a network connection, including launch, mode switching, target entry, rounding, default and minimum-plate calculations, reverse-mode greedy optimization, adding/removing plates, totals, and visualization.
+After a successful online load has cached the current application assets, every version 1 calculator behavior shall work without a network connection, including launch, mode switching, target entry, rounding, default and minimum-plate calculations, reverse-mode greedy optimization, adding/removing/resetting plates, totals, and visualization.
 
 ### REQ-PWA-003 — Static hosting
 

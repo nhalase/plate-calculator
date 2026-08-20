@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PLATE_WEIGHTS, type PlateWeight } from '../domain/plates'
 import { PlateCalculator } from './PlateCalculator'
@@ -17,6 +17,12 @@ function removeButtons(weight: PlateWeight) {
 
 function totalOutput() {
   return screen.getByRole('status', { name: 'Current total' })
+}
+
+function totalResetControl() {
+  return screen.getByRole('button', {
+    name: /Current total \d+(?:\.\d+)? pounds\. Reset plates/,
+  })
 }
 
 function configurationActionSlot() {
@@ -40,15 +46,14 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     render(<PlateCalculator />)
 
     expect(totalOutput()).toHaveTextContent('45 lb')
+    expect(totalResetControl()).toHaveAccessibleName(
+      'Current total 45 pounds. Reset plates',
+    )
     expect(screen.getByText('No plates loaded')).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /^Remove / }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', {
-        name: /calculate|apply|submit|clear|reset/i,
-      }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Reset$/i })).not.toBeInTheDocument()
   })
 
   it('S3-AC-003 exposes and adds exactly every supported denomination', async () => {
@@ -167,6 +172,89 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
       screen.queryByText(/matching plates are assumed on the other side/i),
     ).not.toBeInTheDocument()
     expect(totalOutput()).toHaveAttribute('aria-live', 'polite')
+    expect(totalResetControl().tagName).toBe('BUTTON')
+  })
+
+  it('S3-AC-016 resets only after two pointer activations within 500 ms', async () => {
+    render(<PlateCalculator />)
+    await addPlates([45, 10])
+    const reset = totalResetControl()
+    reset.focus()
+    const now = vi.spyOn(Date, 'now')
+
+    now.mockReturnValue(1_000)
+    fireEvent.click(reset, { detail: 1 })
+    expect(totalOutput()).toHaveTextContent('155 lb')
+    expect(removeButtons(45)).toHaveLength(1)
+
+    now.mockReturnValue(1_500)
+    fireEvent.click(reset, { detail: 1 })
+
+    expect(totalOutput()).toHaveTextContent('45 lb')
+    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Remove / })).not.toBeInTheDocument()
+    expect(reset).toHaveFocus()
+    now.mockRestore()
+  })
+
+  it('S3-AC-016 expires a pointer pair after 500 ms and starts a new sequence', async () => {
+    render(<PlateCalculator />)
+    await addPlates([45])
+    const reset = totalResetControl()
+    const now = vi.spyOn(Date, 'now')
+
+    now.mockReturnValue(1_000)
+    fireEvent.click(reset, { detail: 1 })
+    now.mockReturnValue(1_501)
+    fireEvent.click(reset, { detail: 1 })
+    expect(totalOutput()).toHaveTextContent('135 lb')
+
+    now.mockReturnValue(2_000)
+    fireEvent.click(reset, { detail: 1 })
+    expect(totalOutput()).toHaveTextContent('45 lb')
+    now.mockRestore()
+  })
+
+  it('S3-AC-016 resets immediately from keyboard activation', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    await user.click(addButton(45))
+    const reset = totalResetControl()
+    reset.focus()
+
+    await user.keyboard('{Enter}')
+
+    expect(totalOutput()).toHaveTextContent('45 lb')
+    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(reset).toHaveFocus()
+  })
+
+  it('S3-AC-016 clears duplicates, visualization, and Optimize in one reset', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    await addPlates([35, 25, 25])
+    const slot = configurationActionSlot()
+    expect(screen.getByRole('button', { name: 'Optimize' })).toBeInTheDocument()
+
+    await user.dblClick(totalResetControl())
+
+    expect(totalOutput()).toHaveTextContent('45 lb')
+    expect(reverseVisualPlates()).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: 'Optimize' })).not.toBeInTheDocument()
+    expect(configurationActionSlot()).toBe(slot)
+  })
+
+  it('S3-AC-016 treats reset of an empty load as a focused no-op', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    const reset = totalResetControl()
+    reset.focus()
+
+    await user.keyboard('{Enter}')
+
+    expect(totalOutput()).toHaveTextContent('45 lb')
+    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(reset).toHaveFocus()
   })
 
   it('S3-AC-015 optimizes 35 + 25 to the greedy configuration without changing total or slot', async () => {

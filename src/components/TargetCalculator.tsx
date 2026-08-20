@@ -183,7 +183,7 @@ export function TargetCalculator({ active = true }: TargetCalculatorProps = {}) 
   return (
     <section className="calculator" aria-labelledby="target-heading">
       <section className="target-section">
-        <h2 id="target-heading">Target weight</h2>
+        <h2 id="target-heading">Target weight (tap to change)</h2>
 
         <div className="target-control">
           {state.editing ? (

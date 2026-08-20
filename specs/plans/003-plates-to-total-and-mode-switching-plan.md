@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 003: Plates to Total Weight and Mode Switching](003-plates-to-total-and-mode-switching.md)
+[Slice 003: Plates to Total Weight and Mode Switching](../slices/003-plates-to-total-and-mode-switching.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
 
@@ -39,6 +39,7 @@ Implement session-only state retention while switching modes. Do not add the sha
 
 - Add styles for the mode selector and its selected state.
 - Add reverse-calculator total, explanation, add-control, and selected-plate layouts.
+- Present the current-total reset control as the existing dominant number rather than a conventional filled button, with `touch-action: manipulation` and the shared visible focus treatment.
 - Use wrapping grids or flex layouts that remain within 320 CSS pixels.
 - Preserve the existing global minimum 44 by 44 CSS-pixel button target and visible focus treatment.
 - Use text and borders for meaning; do not introduce denomination colors, graphical plate shapes, or barbell imagery.
@@ -80,10 +81,16 @@ No mode labels or values shall be duplicated outside this component except in te
 Export:
 
 ```ts
-export function PlateCalculator(): JSX.Element
+export interface PlateCalculatorProps {
+  active?: boolean
+}
+
+export function PlateCalculator(
+  props: PlateCalculatorProps,
+): JSX.Element
 ```
 
-The reverse calculator owns its selected one-side plate collection. Do not export its reducer, focus bookkeeping, or internal state type unless implementation pressure demonstrates a concrete reusable need.
+`active` defaults to `true`, preserving isolated `render(<PlateCalculator />)` use. The reverse calculator owns its selected one-side plate collection. Do not export its reducer, focus bookkeeping, or internal state type.
 
 ### `src/components/TargetCalculator.tsx`
 
@@ -124,7 +131,7 @@ Responsibilities:
 - render `ModeSelector` persistently;
 - keep `TargetCalculator` and `PlateCalculator` mounted;
 - mark exactly one calculator wrapper as hidden;
-- pass `active={mode === 'target-to-plates'}` to `TargetCalculator`.
+- pass the corresponding `active` value to both calculators so unfinished target editing and pending reverse-reset activation are cancelled when their panel is deactivated.
 
 `App` shall not calculate totals, sort plates, parse targets, or own per-calculator domain state.
 
@@ -160,7 +167,10 @@ Responsibilities:
 - derive the greedy configuration for the current total and expose Optimize only when the manual selection differs;
 - replace a non-greedy selection with the greedy configuration while preserving total and focusing the first resulting plate;
 - keep a fixed-size configuration-action slot mounted whether or not Optimize is available;
-- announce total changes.
+- announce total changes;
+- expose the prominent total as the native reset control defined by S3-AC-016;
+- distinguish pointer double activation from keyboard or assistive-technology activation without duplicating total calculation rules;
+- cancel a pending first pointer activation when the reverse panel deactivates or another reverse control is used.
 
 Derive `greedyPlates` with `calculateDefaultPlates(total)`. Because both arrays are domain-sorted, availability is a length and element-by-element equality comparison between `selectedPlates` and `greedyPlates`; the UI shall not reproduce the greedy algorithm.
 
@@ -272,9 +282,19 @@ Map add controls directly from `PLATE_WEIGHTS`. Do not write a second denominati
 ### Current total
 
 - Render a visible `Current total` label.
-- Render the derived value prominently as `{total} lb`.
-- Use an `output` element with `aria-live="polite"` or equivalent polite announcement behavior.
+- Render the derived value prominently as a native button containing `{total} lb`, with an accessible name that communicates the current total and reset purpose.
+- Use a separate visually hidden `output` with `aria-live="polite"` so total changes remain announced without changing the button presentation.
 - Do not make the value editable.
+
+### Current-total reset
+
+- Track the first primary-pointer activation timestamp in a ref, not React presentation state.
+- A second pointer activation at or before 500 milliseconds clears the selected configuration; a later activation starts a new sequence.
+- Treat a semantic click with `detail === 0` as keyboard or assistive-technology activation and reset immediately.
+- Clear the pending activation when adding, removing, optimizing, or deactivating the reverse panel.
+- Reset to the shared empty configuration so `calculateTotalWeight` derives 45 lb; do not store a separate reset total.
+- Preserve the mounted current-total button so focus remains on it after reset.
+- When already empty, clear pending timing state but do not issue a redundant selected-plate update or false total announcement.
 
 ### One-side explanation
 
@@ -469,11 +489,21 @@ Repeat with an invalid or empty draft if needed to protect the unconditional can
 - Build `45 | 10 | 5` manually and assert Optimize never appears.
 - Add or remove a plate to make a configuration non-greedy and assert Optimize appears inside the reserved slot without changing the slot's structural position.
 
+### S3-AC-016 — Current-total reset
+
+- Assert one pointer activation leaves plates and total unchanged.
+- Assert two activations exactly 500 milliseconds apart reset, while a pair 501 milliseconds apart does not.
+- Assert the expired second activation starts a new sequence.
+- Assert Enter resets immediately and leaves focus on the current-total control.
+- Assert reset clears duplicates, the graphical configuration, and Optimize while retaining the action-slot element.
+- Assert empty reset is a focused no-op.
+- In `App.test.tsx`, assert reset preserves committed target state and mode switching cancels a pending first pointer activation.
+
 ### Cross-cutting regression assertions
 
 - Keep all existing `TargetCalculator.test.tsx` cases unchanged.
 - Assert only the active panel is accessible.
-- Assert there are no Calculate, Apply, Submit, Clear, Reset, bar-setting, persistence, visualization, or deployment controls.
+- Assert there are no separate Calculate, Apply, Submit, Clear, Reset, bar-setting, persistence, or deployment controls; the current-total value is the only reset control.
 - Keep all Slice 001 tests unchanged.
 
 ## Manual browser verification
@@ -489,6 +519,8 @@ Run the production-equivalent UI locally and inspect both modes at a 320 CSS-pix
 7. Confirm each mode's committed state survives repeated switching.
 8. Confirm no behavior depends on hover.
 9. Add 35 and 25, measure the selected-plates section and action slot, activate Optimize, and confirm the total and surrounding element positions do not change.
+10. Activate the current-total control once and confirm no change; activate it again within 500 milliseconds and confirm the empty 45 lb state without layout movement or lost focus.
+11. Repeat reset with keyboard activation and confirm the same result without a pointer gesture.
 
 Record the result in the implementation handoff. Do not add a visual-regression framework in this slice.
 
@@ -517,9 +549,9 @@ Then inspect the production bundle and preview to confirm:
 3. Add the optional `active` contract and deactivation cancellation to `TargetCalculator`.
 4. Add App integration tests for initial mode, switching, target retention, draft cancellation, no-op behavior, and reload reset.
 5. Create `PlateCalculator` with denomination-driven add controls, domain-derived ordering, and domain-derived total.
-6. Implement index-based removal, reverse greedy optimization, and deterministic ref-driven focus recovery.
-7. Add isolated reverse-calculator acceptance tests, including S3-AC-015.
-8. Extend plain CSS for selector, reverse layouts, and the persistent action slot.
+6. Implement index-based removal, reverse greedy optimization, deterministic ref-driven focus recovery, and the current-total reset timing contract.
+7. Add isolated reverse-calculator and App acceptance tests, including S3-AC-015 and S3-AC-016.
+8. Extend plain CSS for selector, reverse layouts, the persistent action slot, and the visually neutral current-total reset control.
 9. Run type checking and the complete test suite.
 10. Build and inspect the production output.
 11. Perform the focused 320 CSS-pixel browser and keyboard verification.
@@ -536,7 +568,9 @@ Then inspect the production bundle and preview to confirm:
 - **Dynamic removal loses focus:** compute the destination before state update and focus through refs in a layout effect.
 - **Unstable duplicate keys:** use deterministic rendered-position keys only for rendering; do not invent product identity or expose it as state.
 - **Mobile overflow:** use `minmax(0, 1fr)`, wrapping containers, `min-width: 0`, and a measured 320-pixel check.
-- **Scope growth:** reject graphical plates, colors, reset controls, persistence, PWA, routing, deployment, and later-slice abstractions.
+- **Accidental single-tap reset:** store the first pointer timestamp without changing selected plates and test the exact 500/501 millisecond boundary.
+- **Pending reset survives another action:** cancel it from add, removal, Optimize, and reverse-panel deactivation paths.
+- **Scope growth:** reject graphical plates, colors, a separate visible reset control, persistence, PWA, routing, deployment, and later-slice abstractions.
 
 ## Ambiguities and contradictions
 
@@ -550,6 +584,8 @@ The specification deliberately resolves the potentially ambiguous cases:
 - committed target and reverse states persist only for the mounted application session;
 - removal targets a rendered index and removes one duplicate only;
 - post-removal focus follows next, previous, then corresponding-add priority;
+- the current total is the sole reset control, pointer reset requires two activations within 500 milliseconds, and semantic non-pointer activation resets once;
+- reverse-panel deactivation and other reverse controls cancel pending reset timing;
 - graphical portions of AC-CALC-005-3 and AC-UI-004-2 remain deferred and are not claimed complete.
 
 ## Plan completeness

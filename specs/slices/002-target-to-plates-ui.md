@@ -77,7 +77,7 @@ Secondary text shown when a valid requested target normalizes to a different act
 The view shall expose these elements in this order:
 
 1. Application heading identifying the Barbell Plate Calculator.
-2. Target section labeled `Target weight`.
+2. Target section visibly labeled `Target weight (tap to change)`.
 3. Prominent interactive active-target value including the `lb` unit.
 4. Direct-entry input in place of the active-target control while editing.
 5. Optional rounding feedback immediately associated with the target.
@@ -86,7 +86,7 @@ The view shall expose these elements in this order:
 8. Textual plate configuration or empty-result text.
 9. Optional `Reduce plates` action.
 
-The exact visual styling, capitalization, and punctuation may vary, but visible and accessible wording must communicate the same meaning.
+Except for the exact target-section label `Target weight (tap to change)`, visual styling, capitalization, and punctuation may vary, but visible and accessible wording must communicate the same meaning. The direct-entry input retains the accessible name `Target weight`; the parenthetical instruction belongs to the visible section label and does not rename that input.
 
 ## Initial state
 
@@ -420,7 +420,8 @@ The application shall use locally available system fonts. No remote font, styles
 
 Given the view has just loaded,
 when no interaction has occurred,
-then the active target is 45 lb,
+then the target section is visibly labeled `Target weight (tap to change)`,
+and the active target is 45 lb,
 and the result says `No plates required`,
 and Reduce plates is absent,
 and no bar-weight configuration control exists.

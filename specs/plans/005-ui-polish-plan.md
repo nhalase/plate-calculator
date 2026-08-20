@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 005: UI Polish](005-ui-polish.md)
+[Slice 005: UI Polish](../slices/005-ui-polish.md)
 
 This plan implements the approved Slice 005 visual contract without changing product behavior from Slices 001 through 004.
 
@@ -40,7 +40,7 @@ The existing React, TypeScript, Vite, Vitest, Testing Library, and plain-CSS sta
 - Do not merge plan content into the slice.
 - After implementation and verification, change status to `Approved and implemented`.
 
-### `specs/slices/005-ui-polish-plan.md`
+### `specs/plans/005-ui-polish-plan.md`
 
 - Keep this implementation plan separate from the behavioral specification.
 - After implementation and verification, change status to `Approved and implemented`.
@@ -108,13 +108,13 @@ The existing React, TypeScript, Vite, Vitest, Testing Library, and plain-CSS sta
 ### `src/components/TargetCalculator.test.tsx`
 
 - Preserve every Slice 002 and Slice 004 workflow assertion.
-- Add or refine Slice 005 assertions for the target hierarchy's semantic elements and persistent action slot.
+- Add or refine Slice 005 assertions for the exact `Target weight (tap to change)` heading, target hierarchy's semantic elements, and persistent action slot.
 - Do not test pixel layout in jsdom.
 
 ### `src/components/PlateCalculator.test.tsx`
 
 - Preserve every Slice 003 and Slice 004 workflow assertion.
-- Add or refine Slice 005 assertions for add-control order, reverse hierarchy, fixed-bar semantics, Optimize behavior, and persistent action slot.
+- Add or refine Slice 005 assertions for add-control order, reverse hierarchy, the visually neutral current-total reset control, fixed-bar semantics, Optimize behavior, and persistent action slot.
 - Do not duplicate shared `Barbell` structural assertions unnecessarily.
 
 ## Files to create
@@ -179,11 +179,11 @@ Do not add design tokens to the domain module. Application-level tokens belong i
 
 ### `TargetCalculator`
 
-`TargetCalculator` keeps all established target, draft, feedback, and configuration state. Slice 005 changes presentation only.
+`TargetCalculator` keeps all established target, draft, feedback, and configuration state. Its approved copy amendment changes the visible card heading to `Target weight (tap to change)` without renaming the input or edit button. Slice 005 otherwise changes presentation only.
 
 ### `PlateCalculator`
 
-`PlateCalculator` keeps all established selected-plate and pending-focus state. Slice 005 changes presentation only.
+`PlateCalculator` keeps the selected-plate, pending-focus, and current-total reset behavior established by Slice 003. Style the reset button as the existing large total: transparent surface, no conventional button chrome, at least a 44 by 44 CSS-pixel target, visible focus, and `touch-action: manipulation`. Add no Reset label, icon, helper line, confirmation, or card-height change.
 
 ### `Barbell`
 
@@ -544,7 +544,7 @@ In `App.test.tsx`:
 In `TargetCalculator.test.tsx`:
 
 - retain the 165 default result and Reduce plates workflow;
-- assert the heading, total/unit association, step controls, result text, visualization, and action all remain in their expected sections;
+- assert the exact `Target weight (tap to change)` heading, total/unit association, step controls, result text, visualization, and action all remain in their expected sections;
 - leave typography and equal control geometry to browser checks.
 
 ### S5-AC-005 — Reverse-mode hierarchy
@@ -553,6 +553,7 @@ In `PlateCalculator.test.tsx`:
 
 - add 35 then 25;
 - assert 165 total, exact add-control order, visual weights/colors, and visible Optimize;
+- assert the prominent total is the accessible reset control while retaining its subordinate unit and existing visual hierarchy;
 - preserve add-button focus and accessible denomination/unit labels.
 
 ### S5-AC-006 — Fixed-bar notch

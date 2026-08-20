@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 002: Target Weight to Plates UI](002-target-to-plates-ui.md)
+[Slice 002: Target Weight to Plates UI](../slices/002-target-to-plates-ui.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
 
@@ -107,6 +107,8 @@ Component tests will use React Testing Library and `user-event` through accessib
 ### `src/components/TargetCalculator.tsx`
 
 Own the Slice 002 UI state and all observable transitions. Import the Slice 001 domain API directly.
+
+Render the target-section heading with the exact approved visible copy `Target weight (tap to change)`. Keep the direct-entry input's accessible name `Target weight` and the display button's accessible name `Edit target weight`; the parenthetical instruction changes visible heading copy only.
 
 Do not create speculative shared components or later-slice placeholders. Small private rendering or parsing helpers may remain in this file unless extraction materially improves clarity.
 
@@ -280,6 +282,7 @@ Create `src/components/TargetCalculator.test.tsx` and group tests by slice accep
 
 ### S2-AC-001 — Initial empty bar
 
+- Assert the level-two heading is exactly `Target weight (tap to change)`.
 - Assert 45 lb is the primary target.
 - Assert `No plates required`.
 - Assert Reduce plates is absent.

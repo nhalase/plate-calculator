@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 004: Shared Barbell Visualization](004-shared-barbell-visualization.md)
+[Slice 004: Shared Barbell Visualization](../slices/004-shared-barbell-visualization.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
 
