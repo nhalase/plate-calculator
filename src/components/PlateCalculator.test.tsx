@@ -159,13 +159,13 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     expect(screen.getByText('No plates loaded')).toBeInTheDocument()
   })
 
-  it('S3-AC-013 uses native, clearly named controls and explains symmetry', () => {
+  it('S3-AC-013 uses native, clearly named controls without helper copy', () => {
     render(<PlateCalculator />)
 
     expect(screen.getAllByRole('button', { name: /^Add / })).toHaveLength(6)
     expect(
-      screen.getByText(/matching plates are assumed on the other side/i),
-    ).toBeInTheDocument()
+      screen.queryByText(/matching plates are assumed on the other side/i),
+    ).not.toBeInTheDocument()
     expect(totalOutput()).toHaveAttribute('aria-live', 'polite')
   })
 
@@ -220,7 +220,9 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
 })
 
 function reverseVisualization() {
-  return screen.getByRole('group', { name: 'Plates on one side' })
+  return screen.getByRole('group', {
+    name: /Plates on one side\. Fixed bar: 45 lb/,
+  })
 }
 
 function reverseVisualPlates() {
@@ -260,9 +262,9 @@ describe('Slice 004 reverse visualization integration', () => {
       'red',
       'green',
     ])
-    expect(screen.getByRole('button', { name: 'Remove 45 lb plate' })).toHaveTextContent(
-      '45 lb',
-    )
+    const remove45 = screen.getByRole('button', { name: 'Remove 45 lb plate' })
+    expect(remove45.querySelector('.barbell__plate-weight')).toHaveTextContent('45')
+    expect(remove45.querySelector('.barbell__plate-unit')).toHaveTextContent('LB')
   })
 
   it('S4-AC-007 keeps graphical order and color independent of insertion order', async () => {

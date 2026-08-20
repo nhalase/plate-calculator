@@ -7,10 +7,19 @@ export interface ModeSelectorProps {
 
 const MODE_CHOICES: ReadonlyArray<{
   mode: CalculatorMode
-  label: string
+  visibleLabel: string
+  accessibleLabel: string
 }> = [
-  { mode: 'target-to-plates', label: 'Target Weight → Plates' },
-  { mode: 'plates-to-total', label: 'Plates → Total Weight' },
+  {
+    mode: 'target-to-plates',
+    visibleLabel: 'Target → Plates',
+    accessibleLabel: 'Target Weight → Plates',
+  },
+  {
+    mode: 'plates-to-total',
+    visibleLabel: 'Plates → Total',
+    accessibleLabel: 'Plates → Total Weight',
+  },
 ]
 
 export function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
@@ -21,6 +30,7 @@ export function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
           key={choice.mode}
           className="mode-selector__choice"
           type="button"
+          aria-label={choice.accessibleLabel}
           aria-pressed={mode === choice.mode}
           data-calculator-mode={choice.mode}
           onClick={() => {
@@ -29,7 +39,7 @@ export function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
             }
           }}
         >
-          {choice.label}
+          {choice.visibleLabel}
         </button>
       ))}
     </div>

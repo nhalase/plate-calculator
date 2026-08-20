@@ -56,7 +56,7 @@ describe('Slice 004 shared Barbell', () => {
 
     expect(
       screen.getByRole('img', {
-        name: 'Plates required on one side. One side: no plates',
+        name: 'Plates required on one side. Fixed bar: 45 lb. One side: no plates',
       }),
     ).toBeInTheDocument()
     expect(container.querySelector('[data-barbell-part="shaft"]')).not.toBeNull()
@@ -78,7 +78,7 @@ describe('Slice 004 shared Barbell', () => {
 
     expect(
       screen.getByRole('img', {
-        name: 'Plates required on one side. One side: 45 lb, 10 lb, 5 lb',
+        name: 'Plates required on one side. Fixed bar: 45 lb. One side: 45 lb, 10 lb, 5 lb',
       }),
     ).toBeInTheDocument()
     expect(
@@ -100,7 +100,11 @@ describe('Slice 004 shared Barbell', () => {
       />,
     )
 
-    expect(screen.getByRole('group', { name: 'Plates on one side' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('group', {
+        name: 'Plates on one side. Fixed bar: 45 lb',
+      }),
+    ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Remove 25 lb plate' }))
 
     expect(onRemovePlate).toHaveBeenCalledOnce()
@@ -142,7 +146,10 @@ describe('Slice 004 shared Barbell', () => {
     rendered.forEach((plate, index) => {
       const definition = PLATE_DEFINITIONS[index]
       const tokens = PLATE_COLOR_TOKENS[definition.color]
-      expect(plate).toHaveTextContent(`${definition.weight} lb`)
+      expect(plate.querySelector('.barbell__plate-weight')).toHaveTextContent(
+        String(definition.weight),
+      )
+      expect(plate.querySelector('.barbell__plate-unit')).toHaveTextContent('LB')
       expect(plate.style.getPropertyValue('--plate-background')).toBe(
         tokens.background,
       )
@@ -179,6 +186,90 @@ describe('Slice 004 shared Barbell', () => {
     )
 
     expect(container.querySelector('[aria-live]')).toBeNull()
+  })
+
+  it('S5-AC-006 renders one non-interactive fixed-bar notch in every mode', () => {
+    const readonly = render(
+      <Barbell
+        mode="readonly"
+        plates={[45]}
+        accessibleLabel="Plates required on one side"
+      />,
+    )
+    const readonlyNotch = readonly.container.querySelector<HTMLElement>(
+      '[data-barbell-part="bar-weight-notch"]',
+    )
+
+    expect(readonlyNotch).not.toBeNull()
+    expect(readonlyNotch).toHaveTextContent('45')
+    expect(readonlyNotch).toHaveTextContent('LB BAR')
+    expect(readonlyNotch).not.toHaveAttribute('tabindex')
+    expect(readonlyNotch).not.toHaveAttribute('data-plate-weight')
+    expect(readonlyNotch?.closest('button')).toBeNull()
+    readonly.unmount()
+
+    const removable = render(
+      <Barbell
+        mode="removable"
+        plates={[]}
+        accessibleLabel="Plates on one side"
+        onRemovePlate={() => undefined}
+      />,
+    )
+    expect(
+      removable.container.querySelectorAll(
+        '[data-barbell-part="bar-weight-notch"]',
+      ),
+    ).toHaveLength(1)
+    expect(
+      screen.getByRole('group', {
+        name: 'Plates on one side. Fixed bar: 45 lb',
+      }),
+    ).toBeInTheDocument()
+  })
+
+  it('S5-AC-007 renders hardware and supplied plates in semantic left-to-right order', () => {
+    const plates = Object.freeze([45, 10, 5] as const)
+    const { container } = render(
+      <Barbell
+        mode="readonly"
+        plates={plates}
+        accessibleLabel="Plates required on one side"
+      />,
+    )
+    const track = container.querySelector('.barbell__track')
+    const directParts = [...(track?.children ?? [])]
+
+    expect(directParts[0]).toHaveAttribute('data-barbell-part', 'bar-weight-notch')
+    expect(directParts[1]).toHaveAttribute('data-barbell-part', 'shaft')
+    expect(directParts[2]).toHaveAttribute('data-barbell-part', 'collar')
+    expect(
+      [...directParts[3].querySelectorAll('[data-plate-weight]')].map((plate) =>
+        plate.getAttribute('data-plate-weight'),
+      ),
+    ).toEqual(['45', '10', '5'])
+    expect(directParts[4]).toHaveAttribute('data-barbell-part', 'sleeve')
+    expect(plates).toEqual([45, 10, 5])
+  })
+
+  it('S5-AC-008 uses one shared two-line label structure for every denomination', () => {
+    const { container } = render(
+      <Barbell
+        mode="readonly"
+        plates={PLATE_WEIGHTS}
+        accessibleLabel="All plates"
+      />,
+    )
+
+    const labels = container.querySelectorAll('[data-plate-label="true"]')
+    expect(labels).toHaveLength(PLATE_WEIGHTS.length)
+    labels.forEach((label, index) => {
+      expect(label.querySelector('.barbell__plate-weight')).toHaveTextContent(
+        String(PLATE_WEIGHTS[index]),
+      )
+      expect(label.querySelector('.barbell__plate-unit')).toHaveTextContent('LB')
+    })
+    expect(container.querySelector('img, svg, canvas')).toBeNull()
   })
 
   it('focuses and reveals a requested removable plate using only internal scroll', () => {
@@ -249,7 +340,7 @@ describe('Slice 004 shared Barbell', () => {
     )
 
     const viewport = screen.getByRole('img', {
-      name: /Many plates\. One side:/,
+      name: /Many plates\. Fixed bar: 45 lb\. One side:/,
     })
     expect(viewport).toHaveAttribute('data-overflowing', 'true')
     expect(viewport).toHaveAttribute('tabindex', '0')

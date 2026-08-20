@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved
+Approved and implemented
 
 ## Source specification
 
@@ -65,7 +65,7 @@ The existing React, TypeScript, Vite, Vitest, Testing Library, and plain-CSS sta
 
 ### `src/components/Barbell.tsx`
 
-- Add the decorative fixed-bar notch before the shaft connector and collar.
+- Add the decorative fixed-bar notch directly before the plate stack.
 - Keep the notch outside the plate array and all plate refs.
 - Update the visualization summary to identify the fixed 45 lb bar.
 - Preserve the existing controlled props, imperative handle, overflow measurement, internal reveal behavior, input order, duplicate handling, and removal-by-index behavior.
@@ -87,7 +87,7 @@ The existing React, TypeScript, Vite, Vitest, Testing Library, and plain-CSS sta
 - Replace the light visual system with the approved dark tokens.
 - Add the CSS-rendered brand mark.
 - Implement the exact shell, card, typography, segmented-control, control, action, and responsive contracts.
-- Refine the barbell track into a left-anchored notch/connector/collar/plates/sleeve assembly.
+- Refine the barbell track into a left-anchored notch/plates/sleeve visual assembly.
 - Center complete label blocks on the sleeve centerline through shared grid or flex rules.
 - Remove the current plate-stack background gradient and use a flat bar axis.
 - Add reduced-motion, forced-colors, focus-visible, hover-capable, and active states.
@@ -187,7 +187,7 @@ Do not add design tokens to the domain module. Application-level tokens belong i
 
 ### `Barbell`
 
-`Barbell` remains the only shared rendering boundary for the notch, connector, collar, plates, sleeve, overflow, and internal plate focus/reveal mechanics. The notch is decorative presentation data and must not enter calculator state or `PlateConfiguration`.
+`Barbell` remains the only shared rendering boundary for the notch, plates, sleeve, overflow, and internal plate focus/reveal mechanics. The notch is decorative presentation data and must not enter calculator state or `PlateConfiguration`.
 
 No component shall recalculate, sort, normalize, optimize, or persist data for visual purposes.
 
@@ -366,8 +366,6 @@ Change the track to the following semantic order:
 viewport
 └── track
     ├── fixed-bar notch
-    ├── short shaft connector
-    ├── collar
     ├── plate stack
     │   ├── plate 0
     │   │   └── centered label block
@@ -381,8 +379,6 @@ Use hooks equivalent to:
 
 ```text
 data-barbell-part="bar-weight-notch"
-data-barbell-part="shaft"
-data-barbell-part="collar"
 data-barbell-part="sleeve"
 data-plate-label="true"
 ```
@@ -437,11 +433,11 @@ Use one shared vertical axis at 50% of the 158 px track height.
 - Two-line centered label `45` / `LB BAR`.
 - `flex: 0 0 52px`.
 
-### Connector and collar
+### Notch-to-plate join
 
-- Render a 12 px connector on the sleeve axis after the notch.
-- Keep the collar as the distinct 12 by 62 px vertical neutral rectangle.
-- Use flat solid fills and borders only.
+- Place the plate stack immediately after the notch.
+- Render no visible connector, collar, or spacing between the notch and the first plate.
+- When the configuration is empty, place the remaining sleeve immediately after the notch.
 
 ### Plate stack
 
@@ -485,7 +481,7 @@ label: display: grid; place-items: center; align-content: center
 - Do not use per-weight selectors, offsets, transforms, margins, or padding.
 - Keep the plate itself centered by the parent's `align-items: center`.
 
-Real-browser verification shall compare each label wrapper's `getBoundingClientRect()` midpoint to the shaft or sleeve midpoint and require an absolute difference of at most one CSS pixel.
+Real-browser verification shall compare each label wrapper's `getBoundingClientRect()` midpoint to the sleeve midpoint and require an absolute difference of at most one CSS pixel.
 
 ## Overflow, focus, and state preservation
 
@@ -574,7 +570,7 @@ In `Barbell.test.tsx`:
 In `Barbell.test.tsx`:
 
 - render `[45, 10, 5]`;
-- assert semantic DOM order notch, shaft, collar, weights 45/10/5, sleeve;
+- assert semantic DOM order notch, legacy hidden hardware hooks, weights 45/10/5, sleeve, and CSS removal of the hardware gap;
 - assert the input array remains unchanged;
 - leave physical inline-coordinate ordering to browser verification.
 
@@ -638,8 +634,8 @@ Build the production bundle and run its local preview. Use a fresh browser state
 1. Confirm the CSS logo and `PLATE CALCULATOR` header.
 2. Confirm target is the left selected blue segment and reverse is the right inactive segment.
 3. Set target 165 and confirm large target hierarchy, equal step controls, result `45 + 10 + 5`, full-width Reduce plates, and fixed-bar notch.
-4. Measure notch, collar, plate, sleeve, and label centers.
-5. Confirm physical order is notch/collar/45/10/5/sleeve and the stack begins at the left anchor.
+4. Measure notch, plate, sleeve, and label centers.
+5. Confirm physical order is notch/45/10/5/sleeve, the notch touches the first plate, and the stack begins at the left anchor.
 6. Activate Reduce plates and confirm 35/25, unchanged total, absent button, identical slot/card rectangles, and left-to-right plate order.
 7. Capture visible-action and absent-action target screenshots from the same viewport and scroll framing.
 
@@ -649,7 +645,7 @@ Build the production bundle and run its local preview. Use a fresh browser state
 2. Add 35 and 25 and confirm current total 165, neutral add controls, flat blue/yellow plates, centered labels, and visible Optimize.
 3. Record selected-card and action-slot rectangles.
 4. Activate Optimize and confirm 45/10/5, unchanged total, focus on Remove 45 lb plate, absent Optimize, and identical recorded rectangles.
-5. Confirm notch/collar/plate/sleeve order and all label centers.
+5. Confirm notch/plate/sleeve order, a flush notch-to-first-plate join, and all label centers.
 6. Capture visible-action and absent-action reverse screenshots from the same viewport and scroll framing.
 
 ### 320 minimum-width workflow
@@ -735,7 +731,7 @@ The specification and this plan resolve the implementation choices as follows:
 - the approved compact mode labels are visible, while full established mode names remain accessible through `aria-label`;
 - the logo is CSS-only and decorative, while the wordmark is the real h1;
 - the fixed-bar notch is 52 by 52 px, is labeled `45` / `LB BAR`, and is never a plate or control;
-- the notch precedes the connector and collar, refining Slice 004 without changing heavy-to-light plate order;
+- the notch sits flush against the first plate, while legacy Slice 004 connector/collar hooks remain non-rendered and heavy-to-light plate order is unchanged;
 - physical loading begins at the left anchor and grows right in the existing supplied order;
 - the complete two-line label block is centered on the sleeve axis, not merely aligned within the plate by text baseline;
 - exact plate heights remain Slice 004 functional tokens;

@@ -134,7 +134,8 @@ export const Barbell = forwardRef<BarbellHandle, BarbellProps>(
       }
     }, [measureOverflow])
 
-    const summary =
+    const fixedBarSummary = 'Fixed bar: 45 lb'
+    const sideSummary =
       plates.length === 0
         ? 'One side: no plates'
         : `One side: ${plates.map((weight) => `${weight} lb`).join(', ')}`
@@ -148,8 +149,8 @@ export const Barbell = forwardRef<BarbellHandle, BarbellProps>(
           role={mode === 'readonly' ? 'img' : 'group'}
           aria-label={
             mode === 'readonly'
-              ? `${accessibleLabel}. ${summary}`
-              : accessibleLabel
+              ? `${accessibleLabel}. ${fixedBarSummary}. ${sideSummary}`
+              : `${accessibleLabel}. ${fixedBarSummary}`
           }
           aria-describedby={overflowing ? hintId : undefined}
           data-barbell-viewport="true"
@@ -157,6 +158,14 @@ export const Barbell = forwardRef<BarbellHandle, BarbellProps>(
           tabIndex={mode === 'readonly' && overflowing ? 0 : undefined}
         >
           <div className="barbell__track">
+            <span
+              className="barbell__bar-weight-notch"
+              data-barbell-part="bar-weight-notch"
+              aria-hidden="true"
+            >
+              <span className="barbell__notch-weight">45</span>
+              <span className="barbell__notch-unit">LB BAR</span>
+            </span>
             <span
               className="barbell__shaft"
               data-barbell-part="shaft"
@@ -197,8 +206,13 @@ export const Barbell = forwardRef<BarbellHandle, BarbellProps>(
                       aria-label={`Remove ${weight} lb plate`}
                       onClick={() => onRemovePlate(index, weight)}
                     >
-                      <span className="barbell__plate-label" aria-hidden="true">
-                        {weight} lb
+                      <span
+                        className="barbell__plate-label"
+                        data-plate-label="true"
+                        aria-hidden="true"
+                      >
+                        <span className="barbell__plate-weight">{weight}</span>
+                        <span className="barbell__plate-unit">LB</span>
                       </span>
                     </button>
                   )
@@ -213,7 +227,13 @@ export const Barbell = forwardRef<BarbellHandle, BarbellProps>(
                     }}
                     aria-hidden="true"
                   >
-                    <span className="barbell__plate-label">{weight} lb</span>
+                    <span
+                      className="barbell__plate-label"
+                      data-plate-label="true"
+                    >
+                      <span className="barbell__plate-weight">{weight}</span>
+                      <span className="barbell__plate-unit">LB</span>
+                    </span>
                   </span>
                 )
               })}

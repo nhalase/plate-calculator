@@ -93,11 +93,12 @@ The application shall expose these elements in this order:
 When Plates → Total Weight is selected, its panel shall expose these elements in this order:
 
 1. Prominent current total including the `lb` unit.
-2. Text explaining that selections represent one side and the application assumes matching plates on the other side.
-3. Add-plate section containing one control for every supported denomination.
-4. Selected-plates section identifying the result as plates on one side.
-5. One independently removable control for each selected plate, or explicit empty-state text.
-6. A fixed-size action slot containing Optimize only when the manual configuration differs from the greedy configuration for the same total.
+2. Add-plate section containing one control for every supported denomination.
+3. Selected-plates section identifying the result as plates on one side.
+4. One independently removable control for each selected plate, or explicit empty-state text.
+5. A fixed-size action slot containing Optimize only when the manual configuration differs from the greedy configuration for the same total.
+
+The Current total card shall not display explanatory helper copy beneath the total.
 
 The exact visual styling, capitalization, and punctuation may vary. Visible and accessible wording must communicate the same meaning.
 

@@ -278,7 +278,7 @@ Map add controls directly from `PLATE_WEIGHTS`. Do not write a second denominati
 
 ### One-side explanation
 
-Render concise visible text stating that the selected plates represent one side and matching plates are assumed on the other side.
+Do not render visible explanatory helper copy beneath the current total. The selected-plate heading and accessible visualization name communicate the one-side context without adding text to the total card.
 
 ### Add controls
 

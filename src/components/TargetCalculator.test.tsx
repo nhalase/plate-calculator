@@ -59,7 +59,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.click(increaseButton())
 
     expect(targetButton()).toHaveTextContent('50')
-    expect(screen.getByText('2.5')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('2.5')
     expect(
       screen.queryByRole('button', { name: /calculate|submit|apply/i }),
     ).not.toBeInTheDocument()
@@ -112,7 +112,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     expect(
       screen.getByText('Nearest loadable weight to 137.5 lb'),
     ).toBeInTheDocument()
-    expect(screen.getByText('45')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('45')
   })
 
   it('S2-AC-007 commits upward rounding through blur', async () => {
@@ -298,7 +298,7 @@ describe('Slice 004 target visualization integration', () => {
 
     expect(screen.getByText('No plates required')).toBeInTheDocument()
     expect(targetVisualization()).toHaveAccessibleName(
-      'Plates required on one side. One side: no plates',
+      'Plates required on one side. Fixed bar: 45 lb. One side: no plates',
     )
     expect(visualWeights()).toEqual([])
     expect(

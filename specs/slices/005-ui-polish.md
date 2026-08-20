@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved
+Approved and implemented
 
 ## Goal
 
@@ -43,7 +43,7 @@ This slice includes:
 - polished target, total, add-plate, result, and selected-plate cards;
 - polished `−5`, `+5`, denomination, Reduce plates, and Optimize controls;
 - identical reserved action-area geometry whether an action is available or absent;
-- a flat CSS-rendered bar, fixed-bar notch, collar, sleeve, and plates;
+- a flat CSS-rendered fixed-bar notch, sleeve, and plates;
 - left-anchored, heavy-to-light plate stacking toward the right edge;
 - plate labels whose visual centers align with the sleeve centerline;
 - responsive behavior at 320, 402, and desktop widths;
@@ -239,7 +239,7 @@ The Current total card shall contain:
 
 - the heading `Current total`;
 - the total as a large white number with a subordinate `lb` unit;
-- the existing one-side symmetry explanation as secondary text.
+- no explanatory helper copy beneath the total.
 
 The Add a plate card shall contain:
 
@@ -275,20 +275,19 @@ The shared visualization shall render one flat, left-anchored assembly. At its i
 Within the assembly, the visual order from left to right shall be:
 
 1. fixed-bar notch;
-2. short shaft connector and collar;
-3. plates in the exact heavy-to-light order supplied by the domain;
-4. remaining sleeve extending toward the right;
-5. sleeve end when visible.
+2. plates in the exact heavy-to-light order supplied by the domain, directly against the notch;
+3. remaining sleeve extending toward the right;
+4. sleeve end when visible.
 
 For `[45, 10, 5]`, the visible order is:
 
 ```text
-45 lb bar notch | collar | red 45 | green 10 | black 5 | remaining sleeve
+45 lb bar notch | red 45 | green 10 | black 5 | remaining sleeve
 ```
 
 The plate group shall not be horizontally centered in the visualization. It shall start at the left assembly anchor and grow toward the right as plate instances are added. Empty space belongs after the loaded plates, not equally on both sides of them.
 
-Heavy-to-light order continues to mean closest-to-collar through farthest-from-collar. The visualization shall consume the existing domain-ordered array and shall not sort in the component.
+Heavy-to-light order continues to mean closest to the fixed-bar notch through farthest from it. The visualization shall consume the existing domain-ordered array and shall not sort in the component.
 
 ## Fixed-bar notch
 
@@ -297,17 +296,17 @@ The fixed-bar notch is a small non-interactive rectangular tab intersecting the 
 The notch shall:
 
 - appear in both modes, including empty-bar states;
-- be visually centered on the same horizontal axis as the shaft, sleeve, plate centers, and plate labels;
-- appear before the collar and every selected plate;
+- be visually centered on the same horizontal axis as the sleeve, plate centers, and plate labels;
+- appear directly before and flush against the first selected plate;
 - use a neutral gray fill and boundary distinct from every denomination fill;
-- be shorter than the 2.5 lb visual plate and wider than the shaft thickness;
+- be shorter than the 2.5 lb visual plate and wider than the sleeve thickness;
 - show `45` as its primary visible label and `lb bar` as visible secondary text when the available notch width permits;
 - otherwise show `45` visibly and expose the full phrase `45 lb bar` through the visualization's accessible description;
 - remain visually distinct from the red 45 lb plate when both are present;
 - never be a button, removal target, selected plate, or member of the plate configuration;
 - never affect totals, sorting, optimization, overflow counts, or focus recovery.
 
-The notch is part of the fixed bar assembly. It does not replace the collar and is not a second 45 lb plate.
+The notch is part of the fixed bar assembly and is not a second 45 lb plate. No separate connector or collar may create visible space between the notch and the first plate.
 
 ## Flat plate geometry
 
@@ -352,7 +351,7 @@ The fixed-bar notch label shall use the same sleeve-center reference. Its label 
 
 ## Empty, duplicate, and overflow states
 
-When no plates are loaded, the viewport shall still show the fixed-bar notch, connector, collar, and a sleeve extending to the right. Existing `No plates required` or `No plates loaded` text remains visible in its calculator context.
+When no plates are loaded, the viewport shall still show the fixed-bar notch and a sleeve extending to the right. Existing `No plates required` or `No plates loaded` text remains visible in its calculator context.
 
 Duplicate plates shall render as separate adjacent instances and shall continue growing the stack toward the right.
 
@@ -405,7 +404,7 @@ At the established iPhone 17 Pro preview size:
 - the step controls remain a two-column row;
 - the add controls remain a three-column by two-row grid;
 - each card fits within the viewport width;
-- the fixed-bar notch, collar, first plate, and some remaining sleeve are recognizable without horizontal scrolling for ordinary configurations;
+- the fixed-bar notch, first plate, and some remaining sleeve are recognizable without horizontal scrolling for ordinary configurations;
 - `[45, 10, 5]` and `[35, 25]` fit without clipping their labels;
 - plate groups begin at the left assembly anchor and extend right;
 - primary action labels remain on one line;
@@ -488,7 +487,8 @@ and the notch is not exposed as a plate or removal control.
 
 Given the supplied configuration is `[45, 10, 5]`,
 then the assembly is anchored at the left of its viewport,
-and the order is fixed-bar notch, collar, red 45, green 10, black 5, remaining sleeve,
+and the order is fixed-bar notch, red 45, green 10, black 5, remaining sleeve,
+and no connector, collar, or gap appears between the notch and red 45 plate,
 and the group grows toward the right rather than remaining centered.
 
 ### S5-AC-008 — Labels align to the bar centerline
@@ -577,7 +577,7 @@ Browser verification shall include:
 3. Reverse mode at 402 by 874 with manual `35 + 25`, total 165, and visible Optimize.
 4. The same reverse state after Optimize produces `45 + 10 + 5`, preserves total 165, moves focus as specified, and causes no action-slot or surrounding-layout movement.
 5. Computed center coordinates confirm that every plate-label block is within one CSS pixel of the sleeve centerline in both representative configurations.
-6. Computed inline coordinates confirm notch, collar, and plate instances increase from left to right in domain order.
+6. Computed inline coordinates confirm the notch and plate instances increase from left to right in domain order with no visible gap between the notch and first plate.
 7. The fixed-bar notch remains visible and non-interactive in both empty-bar states.
 8. A 320 CSS-pixel reverse state with at least twelve plates uses internal visualization overflow and no document-level horizontal overflow.
 9. A 1024 CSS-pixel viewport retains the centered single-column layout.

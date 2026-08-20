@@ -106,10 +106,6 @@ export function PlateCalculator() {
         >
           {total} <span className="target-unit">lb</span>
         </output>
-        <p className="symmetry-note">
-          Select plates for one side. Matching plates are assumed on the other
-          side.
-        </p>
       </section>
 
       <section className="plate-control-section" aria-labelledby="add-heading">

@@ -26,6 +26,37 @@ async function commitTarget(value: string) {
 }
 
 describe('Slice 003 application mode integration', () => {
+  it('S5-AC-002 renders the CSS-only product brand', () => {
+    const { container } = render(<App />)
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Plate Calculator' }),
+    ).toBeInTheDocument()
+    expect(container.querySelector('[data-brand-mark="barbell"]')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    )
+    expect(container.querySelector('img, svg, canvas')).toBeNull()
+  })
+
+  it('S5-AC-003 uses compact visible mode copy with established accessible names', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const choices = screen.getByRole('group', { name: 'Calculator mode' })
+      .querySelectorAll('button')
+
+    expect(choices).toHaveLength(2)
+    expect(choices[0]).toHaveTextContent('Target → Plates')
+    expect(choices[1]).toHaveTextContent('Plates → Total')
+    expect(targetModeButton()).toHaveAttribute('aria-pressed', 'true')
+    expect(reverseModeButton()).toHaveAttribute('aria-pressed', 'false')
+
+    await user.click(reverseModeButton())
+
+    expect(targetModeButton()).toHaveAttribute('aria-pressed', 'false')
+    expect(reverseModeButton()).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('S3-AC-001 starts in target mode with reverse content inaccessible', () => {
     render(<App />)
 
@@ -212,7 +243,7 @@ describe('Slice 003 application mode integration', () => {
     await user.click(screen.getByRole('button', { name: 'Add 10 lb plate' }))
     expect(
       screen
-        .getByRole('group', { name: 'Plates on one side' })
+        .getByRole('group', { name: /Plates on one side\. Fixed bar: 45 lb/ })
         .querySelectorAll('[data-plate-weight]'),
     ).toHaveLength(2)
 
@@ -228,7 +259,7 @@ describe('Slice 003 application mode integration', () => {
 
     await user.click(reverseModeButton())
     const reverseVisual = screen.getByRole('group', {
-      name: 'Plates on one side',
+      name: /Plates on one side\. Fixed bar: 45 lb/,
     })
     expect(
       [...reverseVisual.querySelectorAll<HTMLElement>('[data-plate-weight]')].map(

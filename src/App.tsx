@@ -13,8 +13,14 @@ export function App() {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <p className="eyebrow">Strength tools</p>
-        <h1>Barbell Plate Calculator</h1>
+        <span
+          className="brand-mark"
+          data-brand-mark="barbell"
+          aria-hidden="true"
+        >
+          <span className="brand-mark__bar" />
+        </span>
+        <h1>Plate Calculator</h1>
       </header>
 
       <ModeSelector mode={mode} onModeChange={setMode} />
