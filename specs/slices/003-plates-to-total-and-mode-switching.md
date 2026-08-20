@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Goal
 
-Deliver the second usable calculator workflow and make both calculator modes accessible in one application. A user can switch between Target Weight → Plates and Plates → Total Weight, add or remove plates representing one side of the bar, and see the symmetric total update immediately.
+Deliver the second usable calculator workflow and make both calculator modes accessible in one application. A user can switch between Target Weight → Plates and Plates → Total Weight, add or remove plates representing one side of the bar, see the symmetric total update immediately, and normalize a manual selection to the greedy heavy-first configuration for the same total.
 
 This slice extends the Slice 002 browser application. It defines the complete observable behavior of mode switching and the textual Plates → Total Weight workflow without introducing the shared graphical barbell visualization.
 
@@ -21,7 +21,7 @@ This slice extends the Slice 002 browser application. It defines the complete ob
 ## Source requirements
 
 - REQ-DOM-001 and REQ-DOM-002
-- REQ-CALC-005 and REQ-CALC-006
+- REQ-CALC-005 through REQ-CALC-007
 - REQ-UI-004, REQ-UI-005, and REQ-UI-007
 - REQ-UX-001
 
@@ -42,6 +42,8 @@ This slice includes:
 - one-action removal of exactly one selected plate;
 - heaviest-to-lightest selected-plate ordering;
 - immediate symmetric total calculation;
+- detection and one-action replacement of a non-greedy manual configuration;
+- a permanently reserved Optimize action slot that prevents surrounding layout movement;
 - committed state retention across mode switches;
 - deterministic cancellation of unfinished target editing when switching away;
 - accessible names, announcements, focus behavior, and keyboard operation;
@@ -95,6 +97,7 @@ When Plates → Total Weight is selected, its panel shall expose these elements 
 3. Add-plate section containing one control for every supported denomination.
 4. Selected-plates section identifying the result as plates on one side.
 5. One independently removable control for each selected plate, or explicit empty-state text.
+6. A fixed-size action slot containing Optimize only when the manual configuration differs from the greedy configuration for the same total.
 
 The exact visual styling, capitalization, and punctuation may vary. Visible and accessible wording must communicate the same meaning.
 
@@ -317,6 +320,27 @@ Required examples:
 | `45, 45` | 225 lb |
 | `45, 35, 2.5` | 210 lb |
 
+## Reverse-mode optimization contract
+
+The reverse calculator shall derive the canonical configuration as:
+
+```ts
+calculateDefaultPlates(calculateTotalWeight(selectedPlates))
+```
+
+Optimize shall be visible only when the selected, already-sorted plate array differs from that canonical array by denomination or occurrence. Insertion order is irrelevant. Empty and already-greedy configurations shall not expose Optimize.
+
+Activating Optimize shall:
+
+1. replace the selected plates with the derived greedy configuration;
+2. preserve the current total exactly;
+3. update textual and graphical selections in the same render;
+4. remove Optimize from sight and the accessibility tree;
+5. move focus to the first graphical removal button in the optimized configuration;
+6. require no confirmation.
+
+The selected-plates section shall always contain a fixed-size configuration-action slot. When Optimize is unavailable, the slot remains visually empty and contains no disabled, hidden, or otherwise focusable button. The slot's dimensions shall be unchanged as Optimize appears or disappears, so content outside the slot does not move.
+
 ## Loading and error states
 
 All interactions in this slice are synchronous and local. No loading indicator is required.
@@ -334,6 +358,7 @@ Valid UI interactions shall not send network requests. Domain errors are program
 - Visible text shall explain the one-sided symmetric-loading assumption.
 - Keyboard focus shall remain visible.
 - Focus shall not be lost after a selected plate removes itself.
+- Optimize shall be a native button, and focus shall move to the first resulting graphical removal button after it replaces the manual configuration.
 - All functionality shall be operable without color, graphical shape, hover, drag-and-drop, or pointer-specific gestures.
 
 ## Mobile-layout contract
@@ -486,9 +511,23 @@ and both calculators return to their initial states.
 
 Protects the explicit non-persistence boundary.
 
+### S3-AC-015 — Optimize a manual configuration to greedy
+
+Given the reverse calculator contains `35 | 25`,
+and the current total is 165 lb,
+then Optimize is visible in the permanently reserved action slot,
+when the user activates Optimize,
+then the selected plates become `45 | 10 | 5`,
+and the total remains 165 lb,
+and Optimize is absent from the accessibility tree,
+and focus moves to Remove 45 lb plate,
+and the action slot and surrounding content retain their positions.
+
+Maps to REQ-CALC-003 and REQ-CALC-007.
+
 ## Required automated tests
 
-Automated component tests shall cover S3-AC-001 through S3-AC-012 and S3-AC-014. Tests shall interact through visible controls, accessible roles, names, states, and text rather than component internals.
+Automated component tests shall cover S3-AC-001 through S3-AC-012, S3-AC-014, and S3-AC-015. Tests shall interact through visible controls, accessible roles, names, states, and text rather than component internals.
 
 Tests shall additionally verify:
 
@@ -497,6 +536,8 @@ Tests shall additionally verify:
 - every selected plate instance is a separate removal control;
 - total updates use the existing domain result for additions and removals;
 - displayed ordering matches the existing `sortPlates` result;
+- Optimize availability distinguishes non-greedy from greedy-equivalent selections;
+- reverse optimization preserves total, recovers focus, and retains the same action-slot element;
 - switching modes does not change the URL;
 - the hidden panel is absent from the accessibility tree;
 - Slice 001 and Slice 002 tests pass unchanged.

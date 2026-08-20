@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Goal
 
-Deliver the first usable browser-based calculator workflow. A user can select a target total weight, see the default plates required on each side of a fixed 45 lb bar, understand when the requested weight was adjusted, and optionally replace the default result with a configuration that uses fewer plates.
+Deliver the first usable browser-based calculator workflow. A user can select a target total weight, see the default plates required on each side of a fixed 45 lb bar, understand when the requested weight was adjusted, and optionally reduce the displayed plate count.
 
 This slice integrates the Slice 001 calculation engine with a React UI. It defines the complete observable behavior of the Target Weight → Plates view without prescribing internal React implementation details.
 
@@ -84,7 +84,7 @@ The view shall expose these elements in this order:
 6. `−5` and `+5` controls.
 7. Result section labeled `Plates per side`.
 8. Textual plate configuration or empty-result text.
-9. Optional `Optimize` action.
+9. Optional `Reduce plates` action.
 
 The exact visual styling, capitalization, and punctuation may vary, but visible and accessible wording must communicate the same meaning.
 
@@ -106,7 +106,7 @@ The view shall:
 - display `No plates required` in the per-side result;
 - show `−5` and `+5` controls;
 - not show rounding feedback;
-- not show Optimize;
+- not show Reduce plates;
 - not expose any bar-weight setting or input.
 
 ## Observable state model
@@ -141,7 +141,7 @@ Plate results and optimization availability are derived from the active target. 
 | Press `+5` | Previous active target + 5 | None | No | Default |
 | Press `−5` above 45 | Previous active target − 5 | None | No | Default |
 | Press `−5` at 45 | 45 | None | No | Default |
-| Activate Optimize | Unchanged | Unchanged | No | Optimized |
+| Activate Reduce plates | Unchanged | Unchanged | No | Optimized |
 
 Whenever editing ends, the next editing session begins with a draft equal to the current active target.
 
@@ -322,7 +322,7 @@ Feedback shall remain unchanged after:
 - changing a draft without committing;
 - cancelling with Escape;
 - committing invalid input;
-- activating Optimize.
+- activating Reduce plates.
 
 ## Default plate result
 
@@ -349,18 +349,20 @@ The target section shall show the total barbell weight. The result section shall
 
 ## Optional optimization
 
-The Optimize action shall be visible only when:
+The Reduce plates action shall be visible only when:
 
 1. Slice 001 `hasOptimization(activeTarget)` is true; and
 2. the default configuration is currently displayed.
 
-Activating Optimize shall:
+Activating Reduce plates shall:
 
 1. replace the displayed result with `calculateOptimizedPlates(activeTarget)`;
 2. leave the active target unchanged;
 3. leave rounding feedback unchanged;
-4. hide the Optimize action;
+4. hide the Reduce plates action;
 5. require no confirmation.
+
+The result section shall always render a fixed, button-sized action slot in the same location. The slot remains present when Reduce plates is unavailable or after it is activated, but no disabled or hidden button shall exist in the accessibility tree. Surrounding content shall not move solely because the action appears or disappears.
 
 For an active target of 165 lb:
 
@@ -386,11 +388,11 @@ Valid UI interactions shall not send network requests. Domain errors are program
 
 - Use a `main` landmark for primary content.
 - Use logical heading levels for the application, target section, and result section.
-- Use native buttons for target editing, `−5`, `+5`, and Optimize.
+- Use native buttons for target editing, `−5`, `+5`, and Reduce plates.
 - The `−5` control shall have the accessible name `Decrease target by 5 pounds`.
 - The `+5` control shall have the accessible name `Increase target by 5 pounds`.
 - The direct-entry control shall have the accessible name `Target weight`.
-- The Optimize control shall have the accessible name `Optimize` or an equivalent name containing that word.
+- The plate-reduction control shall have the accessible name `Reduce plates`.
 - Every control shall be reachable and operable by keyboard.
 - Keyboard focus shall remain visibly indicated.
 - No behavior shall require hover.
@@ -420,7 +422,7 @@ Given the view has just loaded,
 when no interaction has occurred,
 then the active target is 45 lb,
 and the result says `No plates required`,
-and Optimize is absent,
+and Reduce plates is absent,
 and no bar-weight configuration control exists.
 
 Maps to AC-DOM-001-1 and AC-DOM-001-2.
@@ -508,22 +510,24 @@ then the draft is discarded,
 and the previous target, feedback, and configuration remain unchanged,
 and a following blur does not commit the cancelled draft.
 
-### S2-AC-010 — Optimize an eligible result
+### S2-AC-010 — Reduce an eligible result
 
 Given the active target is 165 lb,
 and the default result `45 + 10 + 5` is displayed,
-when the user activates Optimize,
+when the user activates Reduce plates,
 then the result becomes `35 + 25`,
 and the active target remains 165 lb,
-and Optimize is no longer displayed.
+and Reduce plates is no longer displayed,
+and the persistent action slot occupies the same position and size as before activation.
 
 Maps to AC-CALC-004-1 through AC-CALC-004-3 and AC-CALC-004-5.
 
-### S2-AC-011 — Hide unavailable optimization
+### S2-AC-011 — Hide unavailable plate reduction
 
 Given the active target has a greedy result that already uses the minimum plate count,
 when the default result is displayed,
-then Optimize is absent.
+then Reduce plates is absent,
+and the fixed action slot remains reserved without exposing an unavailable control to assistive technology.
 
 Maps to AC-CALC-004-4.
 
@@ -540,7 +544,7 @@ and the default configuration for 170 lb is displayed.
 
 Given a requested target of 163 lb has resolved to an active target of 165 lb,
 and rounding feedback identifies the 163 lb request,
-when the user activates Optimize,
+when the user activates Reduce plates,
 then the active target remains 165 lb,
 and the 163 lb feedback remains visible.
 

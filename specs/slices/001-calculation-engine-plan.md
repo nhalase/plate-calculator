@@ -120,9 +120,8 @@ An equivalent package-manager invocation is acceptable in an environment where n
 ## Deferred acceptance-criteria portions
 
 - Empty/non-numeric string handling and preservation of the last valid target in AC-CALC-001-7 require UI parsing and state.
-- Selecting an Optimize action in AC-CALC-004-3 requires UI behavior.
+- Selecting a Reduce plates action in AC-CALC-004-3 requires UI behavior.
 - Proving the user cannot configure the bar in AC-DOM-001-2 requires the UI boundary.
 - Plate colors belong to REQ-DOM-003 and a later presentation slice.
 
 These items do not make the calculation engine ambiguous; they prevent Slice 001 from claiming completion of their UI-facing portions.
-

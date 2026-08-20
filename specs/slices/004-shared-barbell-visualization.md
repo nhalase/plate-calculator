@@ -24,7 +24,7 @@ This slice completes the functional visualization requirements. Broader aestheti
 ## Source requirements
 
 - REQ-DOM-002 and REQ-DOM-003
-- REQ-CALC-003 and REQ-CALC-004
+- REQ-CALC-003, REQ-CALC-004, and REQ-CALC-007
 - The visualization clause of AC-CALC-005-3
 - The visualization clause of AC-UI-004-2
 - REQ-UI-004, REQ-UI-006, and REQ-UI-007
@@ -47,6 +47,7 @@ This slice includes:
 - independently removable graphical plates in reverse mode;
 - synchronization with target default and optimized configurations;
 - synchronization with reverse-mode additions, removals, ordering, and total;
+- synchronization with reverse-mode Optimize replacement;
 - accessible text that does not depend on color, size, or position;
 - bounded horizontal overflow for unlimited plate quantities;
 - automated component and integration tests;
@@ -228,12 +229,12 @@ The Target Weight → Plates result section shall contain:
 1. the existing `Plates per side` label;
 2. the existing textual result or empty-result text;
 3. the one-sided barbell visualization;
-4. the existing optional Optimize action.
+4. the existing optional Reduce plates action.
 
 The visualization shall receive exactly the configuration already used to produce the textual result:
 
 - the default configuration while default mode is selected;
-- the optimized configuration after Optimize is activated.
+- the optimized configuration after Reduce plates is activated.
 
 The target visualization shall:
 
@@ -319,7 +320,7 @@ Optimized textual result: 35 + 25
 Optimized visual plates: blue 35, yellow 25
 ```
 
-Activating Optimize shall replace textual and visual configurations together without changing active total or rounding feedback.
+Activating Reduce plates shall replace textual and visual configurations together without changing active total or rounding feedback.
 
 Changing the target afterward shall restore both textual and visual output to the new target's default configuration, as required by Slice 002.
 
@@ -368,7 +369,7 @@ At a viewport width of 320 CSS pixels:
 - visual plate labels shall remain readable;
 - reverse-mode graphical plates shall remain at least 44 by 44 CSS pixels;
 - vertical plate-size differences shall remain visible;
-- mode switching, target controls, add controls, optimization, and removal shall retain their Slice 002 and Slice 003 target sizes;
+- mode switching, target controls, add controls, Reduce plates, Optimize, and removal shall retain their Slice 002 and Slice 003 target sizes;
 - no visualization behavior shall require hover, drag-and-drop, pinch zoom, or precise pointer input.
 
 ## Acceptance scenarios
@@ -397,7 +398,7 @@ Maps to REQ-CALC-003, REQ-DOM-003, and REQ-UI-006.
 
 Given the active target is 165 lb,
 and the default textual and visual configuration is `45 + 10 + 5`,
-when the user activates Optimize,
+when the user activates Reduce plates,
 then the textual and visual configuration becomes `35 + 25`,
 and the visual plates are blue 35 then yellow 25,
 and the active total remains 165 lb.
@@ -505,7 +506,7 @@ Protects Slice 003 state retention.
 ### S4-AC-014 — Mobile and keyboard usability
 
 Given a 320 CSS-pixel-wide viewport,
-when the user completes target optimization and reverse add/remove workflows using keyboard or touch,
+when the user completes target plate reduction and reverse add/optimize/remove workflows using keyboard or touch,
 then graphical removal targets remain at least 44 by 44 CSS pixels,
 and focus remains visible against every plate color,
 and focused plates remain in view,
@@ -513,9 +514,21 @@ and no document-level horizontal scrolling or hover-only behavior is required.
 
 Maps to REQ-UX-001.
 
+### S4-AC-015 — Reverse Optimize replaces the graphical configuration
+
+Given the reverse visualization contains blue 35 then yellow 25,
+and the total is 165 lb,
+when the user activates Optimize,
+then the visualization becomes red 45, green 10, then black 5,
+and the total remains 165 lb,
+and focus moves to the red 45 lb removal button,
+and the selected-plates section and action slot do not move.
+
+Maps to REQ-CALC-007 and REQ-UI-006.
+
 ## Required automated tests
 
-Automated tests shall cover S4-AC-001 through S4-AC-013. Tests shall interact through visible controls, accessible roles, names, text, and stable semantic plate attributes rather than implementation state.
+Automated tests shall cover S4-AC-001 through S4-AC-013 and S4-AC-015. Tests shall interact through visible controls, accessible roles, names, text, and stable semantic plate attributes rather than implementation state.
 
 Tests shall additionally verify:
 
@@ -524,7 +537,7 @@ Tests shall additionally verify:
 - every color name maps to the required denomination;
 - target-mode plates have no button role or removal name;
 - reverse-mode plates retain one native button per instance;
-- textual and visual sequences match after target changes, optimization, additions, and removals;
+- textual and visual sequences match after target plate reduction, reverse optimization, additions, and removals;
 - graphical rendering does not change calculation results;
 - no duplicate live region is introduced;
 - focused removal remains correct after a graphical plate unmounts;

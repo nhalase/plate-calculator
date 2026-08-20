@@ -12,7 +12,7 @@ This plan implements the approved behavioral contract without adding product beh
 
 ## Scope
 
-Extend the existing React application with a persistent two-choice mode selector and a textual Plates → Total Weight calculator. Preserve the complete Slice 001 calculation boundary and the existing Slice 002 target workflow.
+Extend the existing React application with a persistent two-choice mode selector and a textual Plates → Total Weight calculator. Preserve the complete Slice 001 calculation boundary and the existing Slice 002 target workflow. Derive and apply reverse-mode greedy optimization through existing Slice 001 functions.
 
 Implement session-only state retention while switching modes. Do not add the shared graphical barbell visualization, plate colors, persistence, routing, PWA support, offline behavior, GitHub Pages configuration, deployment, or any later-slice placeholder.
 
@@ -108,6 +108,7 @@ BAR_WEIGHT
 PLATE_WEIGHTS
 PlateConfiguration
 PlateWeight
+calculateDefaultPlates
 calculateTotalWeight
 sortPlates
 ```
@@ -156,7 +157,14 @@ Responsibilities:
 - render all add controls from `PLATE_WEIGHTS`;
 - render one removal button per selected instance;
 - manage deterministic post-removal focus;
+- derive the greedy configuration for the current total and expose Optimize only when the manual selection differs;
+- replace a non-greedy selection with the greedy configuration while preserving total and focusing the first resulting plate;
+- keep a fixed-size configuration-action slot mounted whether or not Optimize is available;
 - announce total changes.
+
+Derive `greedyPlates` with `calculateDefaultPlates(total)`. Because both arrays are domain-sorted, availability is a length and element-by-element equality comparison between `selectedPlates` and `greedyPlates`; the UI shall not reproduce the greedy algorithm.
+
+Render one persistent `.configuration-action-slot` after the selected-plate output. Give it a minimum block size equal to the rendered action button while preserving at least the 44 CSS-pixel touch target. When Optimize is unavailable, render no button inside it. When Optimize is activated, replace state with `greedyPlates` and route the existing post-render focus mechanism to graphical plate index 0.
 
 Do not create a generalized plate visualization or shared graphical plate component in this slice.
 
@@ -420,7 +428,7 @@ In `App.test.tsx`:
 
 ### S3-AC-010 — Committed target retention
 
-- In target mode, commit 163 and activate Optimize.
+- In target mode, commit 163 and activate Reduce plates.
 - Switch to reverse mode and back.
 - Assert active target 165, feedback for 163, and optimized `35 + 25` remain.
 
@@ -453,6 +461,14 @@ Repeat with an invalid or empty draft if needed to protect the unconditional can
 - Unmount the application and render a fresh `App`.
 - Assert target mode is selected, the target is 45, and reverse mode later opens empty at 45 lb.
 
+### S3-AC-015 — Reverse greedy optimization
+
+- Add 35 and 25; assert total 165 and visible Optimize.
+- Capture the persistent action-slot element before activation.
+- Activate Optimize and assert graphical plates `45 | 10 | 5`, unchanged 165 total, absent Optimize, focus on Remove 45 lb plate, and the same action-slot element still mounted.
+- Build `45 | 10 | 5` manually and assert Optimize never appears.
+- Add or remove a plate to make a configuration non-greedy and assert Optimize appears inside the reserved slot without changing the slot's structural position.
+
 ### Cross-cutting regression assertions
 
 - Keep all existing `TargetCalculator.test.tsx` cases unchanged.
@@ -472,6 +488,7 @@ Run the production-equivalent UI locally and inspect both modes at a 320 CSS-pix
 6. Begin a target edit, switch away, and confirm returning shows the committed value rather than the draft.
 7. Confirm each mode's committed state survives repeated switching.
 8. Confirm no behavior depends on hover.
+9. Add 35 and 25, measure the selected-plates section and action slot, activate Optimize, and confirm the total and surrounding element positions do not change.
 
 Record the result in the implementation handoff. Do not add a visual-regression framework in this slice.
 
@@ -500,9 +517,9 @@ Then inspect the production bundle and preview to confirm:
 3. Add the optional `active` contract and deactivation cancellation to `TargetCalculator`.
 4. Add App integration tests for initial mode, switching, target retention, draft cancellation, no-op behavior, and reload reset.
 5. Create `PlateCalculator` with denomination-driven add controls, domain-derived ordering, and domain-derived total.
-6. Implement index-based removal and deterministic ref-driven focus recovery.
-7. Add isolated reverse-calculator acceptance tests.
-8. Extend plain CSS for selector and reverse layouts.
+6. Implement index-based removal, reverse greedy optimization, and deterministic ref-driven focus recovery.
+7. Add isolated reverse-calculator acceptance tests, including S3-AC-015.
+8. Extend plain CSS for selector, reverse layouts, and the persistent action slot.
 9. Run type checking and the complete test suite.
 10. Build and inspect the production output.
 11. Perform the focused 320 CSS-pixel browser and keyboard verification.
@@ -514,7 +531,7 @@ Then inspect the production bundle and preview to confirm:
 - **Draft accidentally commits on mode switch:** dispatch cancellation only; never blur as the switching mechanism or invoke the commit function.
 - **State resets on switching:** keep both calculators mounted and test round-trip retention for each mode.
 - **Duplicate removal deletes too much:** remove by rendered index, not by weight, and test duplicate counts.
-- **UI duplicates domain rules:** map denominations from `PLATE_WEIGHTS`, order through `sortPlates`, and derive totals through `calculateTotalWeight`.
+- **UI duplicates domain rules:** map denominations from `PLATE_WEIGHTS`, order through `sortPlates`, derive totals through `calculateTotalWeight`, and derive the reverse canonical configuration through `calculateDefaultPlates`.
 - **Derived total drifts from selection:** calculate total during render rather than storing it independently.
 - **Dynamic removal loses focus:** compute the destination before state update and focus through refs in a layout effect.
 - **Unstable duplicate keys:** use deterministic rendered-position keys only for rendering; do not invent product identity or expose it as state.

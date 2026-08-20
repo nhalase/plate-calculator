@@ -85,7 +85,7 @@ describe('Slice 003 application mode integration', () => {
     const user = userEvent.setup()
     render(<App />)
     await commitTarget('163')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     await user.click(reverseModeButton())
     await user.click(targetModeButton())
@@ -200,7 +200,7 @@ describe('Slice 003 application mode integration', () => {
     const user = userEvent.setup()
     render(<App />)
     await commitTarget('165')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
     expect(
       screen
         .getByRole('img', { name: /Plates required on one side/ })

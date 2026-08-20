@@ -30,7 +30,7 @@ type TargetCalculatorAction =
   | { type: 'cancel-edit' }
   | { type: 'increment' }
   | { type: 'decrement' }
-  | { type: 'optimize' }
+  | { type: 'reduce-plates' }
 
 const initialState: TargetCalculatorState = {
   activeTarget: BAR_WEIGHT,
@@ -102,7 +102,7 @@ function targetCalculatorReducer(
       }
     }
 
-    case 'optimize':
+    case 'reduce-plates':
       return { ...state, configuration: 'optimized' }
   }
 }
@@ -284,15 +284,20 @@ export function TargetCalculator({ active = true }: TargetCalculatorProps = {}) 
           accessibleLabel="Plates required on one side"
         />
 
-        {optimizationAvailable && state.configuration === 'default' && (
-          <button
-            className="optimize-button"
-            type="button"
-            onClick={() => dispatch({ type: 'optimize' })}
-          >
-            Optimize
-          </button>
-        )}
+        <div
+          className="configuration-action-slot"
+          data-configuration-action-slot="true"
+        >
+          {optimizationAvailable && state.configuration === 'default' && (
+            <button
+              className="optimize-button"
+              type="button"
+              onClick={() => dispatch({ type: 'reduce-plates' })}
+            >
+              Reduce plates
+            </button>
+          )}
+        </div>
       </section>
     </section>
   )

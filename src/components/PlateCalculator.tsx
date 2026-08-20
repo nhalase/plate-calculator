@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 
 import {
+  calculateDefaultPlates,
   calculateTotalWeight,
   sortPlates,
 } from '../domain/calculations'
@@ -19,6 +20,16 @@ type PendingAction =
 
 const EMPTY_CONFIGURATION = Object.freeze([]) as PlateConfiguration
 
+function configurationsMatch(
+  left: PlateConfiguration,
+  right: PlateConfiguration,
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((plate, index) => plate === right[index])
+  )
+}
+
 export function PlateCalculator() {
   const [selectedPlates, setSelectedPlates] =
     useState<PlateConfiguration>(EMPTY_CONFIGURATION)
@@ -27,6 +38,11 @@ export function PlateCalculator() {
   const pendingAction = useRef<PendingAction>(null)
 
   const total = calculateTotalWeight(selectedPlates)
+  const greedyPlates = calculateDefaultPlates(total)
+  const optimizationAvailable = !configurationsMatch(
+    selectedPlates,
+    greedyPlates,
+  )
 
   useLayoutEffect(() => {
     const target = pendingAction.current
@@ -69,6 +85,11 @@ export function PlateCalculator() {
 
       return next
     })
+  }
+
+  function optimizePlates() {
+    pendingAction.current = { kind: 'remove', index: 0 }
+    setSelectedPlates(greedyPlates)
   }
 
   return (
@@ -129,6 +150,20 @@ export function PlateCalculator() {
           accessibleLabel="Plates on one side"
           onRemovePlate={removePlate}
         />
+        <div
+          className="configuration-action-slot"
+          data-configuration-action-slot="true"
+        >
+          {optimizationAvailable && (
+            <button
+              className="optimize-button"
+              type="button"
+              onClick={optimizePlates}
+            >
+              Optimize
+            </button>
+          )}
+        </div>
       </section>
     </section>
   )

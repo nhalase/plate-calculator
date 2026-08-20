@@ -136,7 +136,7 @@ END_INVALID
 CANCEL_EDIT
 INCREMENT
 DECREMENT
-OPTIMIZE
+REDUCE_PLATES
 ```
 
 Each action will implement one row or closely related rows from the slice's state-transition contract. Reducer tests are not required; acceptance tests exercise transitions through the rendered UI.
@@ -161,7 +161,7 @@ Use them as follows:
 - `normalizeTargetWeight`: every syntactically valid direct-entry commit;
 - `calculateDefaultPlates`: every default result;
 - `calculateOptimizedPlates`: the optimized result;
-- `hasOptimization`: Optimize visibility.
+- `hasOptimization`: Reduce plates visibility.
 
 The UI may apply the specified `±5` interaction step. It must not implement side-weight math, target rounding, denomination selection, configuration comparison, or optimization logic.
 
@@ -254,11 +254,11 @@ const plates = configuration === 'optimized'
 - Render no duplicate opposite-side list.
 - Render no graphical plate, color, icon, or size treatment.
 
-### Optimize
+### Reduce plates
 
-Render a native `Optimize` button only when optimization is available and default configuration is active.
+Render a persistent, button-sized action slot. Render a native `Reduce plates` button inside it only when optimization is available and default configuration is active. Keep the slot's position and dimensions stable after the button disappears, without leaving an unavailable button in the accessibility tree.
 
-Dispatching `OPTIMIZE` changes only configuration. The next successful target change resets configuration to default through its own atomic transition.
+Dispatching `REDUCE_PLATES` changes only configuration. The next successful target change resets configuration to default through its own atomic transition.
 
 ## Styling plan
 
@@ -282,7 +282,7 @@ Create `src/components/TargetCalculator.test.tsx` and group tests by slice accep
 
 - Assert 45 lb is the primary target.
 - Assert `No plates required`.
-- Assert Optimize is absent.
+- Assert Reduce plates is absent.
 - Assert no bar-weight configuration input exists.
 
 ### S2-AC-002 and S2-AC-003 — Increment/decrement
@@ -322,22 +322,22 @@ Also verify below-bar finite input is valid and resolves to 45.
 - Assert target, feedback, and optimized output remain.
 - Trigger or observe blur and assert no second transition.
 
-### S2-AC-010 and S2-AC-011 — Optimization
+### S2-AC-010 and S2-AC-011 — Plate reduction
 
-- At 165, assert default `45 + 10 + 5` and visible Optimize.
-- Activate Optimize and assert `35 + 25`, unchanged total, and hidden Optimize.
-- At a target with an already-minimal greedy result, assert Optimize is absent.
+- At 165, assert default `45 + 10 + 5` and visible Reduce plates.
+- Activate Reduce plates and assert `35 + 25`, unchanged total, hidden Reduce plates, and the same persistent action-slot element.
+- At a target with an already-minimal greedy result, assert Reduce plates is absent while the non-interactive slot remains.
 
 ### S2-AC-012 — Reset after target change
 
-- Optimize 165.
+- Reduce plates at 165.
 - Activate `+5`.
 - Assert 170 and its default greedy result.
 
 ### S2-AC-013 — Preserve feedback
 
 - Commit 163 to resolve to 165 with feedback.
-- Activate Optimize.
+- Activate Reduce plates.
 - Assert 165, `35 + 25`, and the 163 lb feedback remain.
 
 ### Cross-cutting assertions

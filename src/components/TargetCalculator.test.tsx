@@ -45,7 +45,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     expect(targetButton()).toHaveTextContent('lb')
     expect(screen.getByText('No plates required')).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Optimize' }),
+      screen.queryByRole('button', { name: 'Reduce plates' }),
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('textbox', { name: /bar weight/i }),
@@ -149,7 +149,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     let input = screen.getByRole('textbox', { name: 'Target weight' })
     await user.clear(input)
     await user.type(input, '163{Enter}')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     await user.click(targetButton())
     input = screen.getByRole('textbox', { name: 'Target weight' })
@@ -182,7 +182,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     render(<TargetCalculator />)
 
     await commitTarget('163')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
     await user.click(targetButton())
     const input = screen.getByRole('textbox', { name: 'Target weight' })
     await user.clear(input)
@@ -195,29 +195,36 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     ).toBeInTheDocument()
   })
 
-  it('S2-AC-010 optimizes 165 without changing its total', async () => {
+  it('S2-AC-010 reduces plates without moving or exposing an unavailable action', async () => {
     const user = userEvent.setup()
     render(<TargetCalculator />)
 
     await commitTarget('165')
     expect(screen.getByText('45 + 10 + 5')).toBeInTheDocument()
+    const actionSlot = document.querySelector(
+      '[data-configuration-action-slot="true"]',
+    )
+    expect(actionSlot).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     expect(targetButton()).toHaveTextContent('165')
     expect(screen.getByText('35 + 25')).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Optimize' }),
+      screen.queryByRole('button', { name: 'Reduce plates' }),
     ).not.toBeInTheDocument()
+    expect(
+      document.querySelector('[data-configuration-action-slot="true"]'),
+    ).toBe(actionSlot)
   })
 
-  it('S2-AC-011 hides Optimize when the greedy result is minimal', async () => {
+  it('S2-AC-011 hides Reduce plates when the greedy result is minimal', async () => {
     render(<TargetCalculator />)
 
     await commitTarget('155')
 
     expect(
-      screen.queryByRole('button', { name: 'Optimize' }),
+      screen.queryByRole('button', { name: 'Reduce plates' }),
     ).not.toBeInTheDocument()
   })
 
@@ -226,7 +233,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     render(<TargetCalculator />)
 
     await commitTarget('165')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
     await user.click(increaseButton())
 
     expect(targetButton()).toHaveTextContent('170')
@@ -239,7 +246,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     render(<TargetCalculator />)
 
     await commitTarget('163')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     expect(targetButton()).toHaveTextContent('165')
     expect(screen.getByText('35 + 25')).toBeInTheDocument()
@@ -321,13 +328,13 @@ describe('Slice 004 target visualization integration', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('S4-AC-003 replaces default text and graphics together on Optimize', async () => {
+  it('S4-AC-003 replaces default text and graphics together on Reduce plates', async () => {
     const user = userEvent.setup()
     render(<TargetCalculator />)
     await commitTarget('165')
     expect(visualWeights()).toEqual(['45', '10', '5'])
 
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     expect(targetButton()).toHaveTextContent('165')
     expect(screen.getByText('35 + 25')).toBeInTheDocument()
@@ -343,7 +350,7 @@ describe('Slice 004 target visualization integration', () => {
     const user = userEvent.setup()
     render(<TargetCalculator />)
     await commitTarget('165')
-    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+    await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     await user.click(increaseButton())
 

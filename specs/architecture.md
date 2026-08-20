@@ -87,11 +87,13 @@ Subtract the bar, divide by two, then greedily take as many plates as possible i
 
 Find an exact configuration with the smallest number of plates. Because inventory is unlimited and all denominations are multiples of 2.5 lb, calculations may use integer units of 2.5 lb to avoid floating-point drift. Tie-breaking compares counts from heaviest denomination to lightest and prefers more heavy plates at the first difference.
 
-Optimization is offered only when the optimized configuration has fewer plates than the greedy configuration.
+Target-mode plate reduction is offered only when the minimum-count configuration has fewer plates than the greedy configuration. Its action label is `Reduce plates`.
 
 ### Reverse calculation
 
 The total is `45 + 2 × sum(one-side plates)`. Display order is descending denomination order and does not affect the calculation.
+
+Reverse-mode greedy optimization derives the canonical configuration by passing the current total to `calculateDefaultPlates`. The UI compares that frozen domain result with the already-sorted selected plates by denomination and occurrence. It offers `Optimize` only when the arrays differ, and applying it replaces the selected collection without changing the total. This comparison does not duplicate the greedy algorithm.
 
 ## React state
 
@@ -125,7 +127,7 @@ Vite must be configured for the repository project path rather than assuming `/`
 ## Testing strategy
 
 - Vitest unit tests cover every calculation acceptance criterion and edge case.
-- UI tests in later slices cover mode controls, direct-entry commit/recovery, add/remove behavior, and optimization visibility.
+- UI tests in later slices cover mode controls, direct-entry commit/recovery, add/remove behavior, target-mode Reduce plates visibility, reverse-mode Optimize behavior, focus recovery, and stable action-slot layout.
 - Production checks cover build success, GitHub Pages base paths, manifest validity, service-worker registration, installability, and offline reload.
 - Test names should include the relevant acceptance-criteria identifiers where practical.
 

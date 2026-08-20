@@ -387,6 +387,10 @@ button.barbell__plate:focus-visible {
   background: #1d4937;
 }
 
+.configuration-action-slot {
+  min-height: 47px;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

@@ -19,6 +19,14 @@ function totalOutput() {
   return screen.getByRole('status', { name: 'Current total' })
 }
 
+function configurationActionSlot() {
+  const slot = document.querySelector<HTMLElement>(
+    '[data-configuration-action-slot="true"]',
+  )
+  expect(slot).not.toBeNull()
+  return slot as HTMLElement
+}
+
 async function addPlates(weights: readonly PlateWeight[]) {
   const user = userEvent.setup()
   for (const weight of weights) {
@@ -97,7 +105,7 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
       name: 'Plates on one side',
     })
     const labels = within(selectedRegion)
-      .getAllByRole('button')
+      .getAllByRole('button', { name: /^Remove / })
       .map((button) => button.getAttribute('aria-label'))
     expect(labels).toEqual([
       'Remove 45 lb plate',
@@ -159,6 +167,55 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
       screen.getByText(/matching plates are assumed on the other side/i),
     ).toBeInTheDocument()
     expect(totalOutput()).toHaveAttribute('aria-live', 'polite')
+  })
+
+  it('S3-AC-015 optimizes 35 + 25 to the greedy configuration without changing total or slot', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    const slot = configurationActionSlot()
+    expect(slot).toBeEmptyDOMElement()
+
+    await user.click(addButton(35))
+    await user.click(addButton(25))
+
+    expect(totalOutput()).toHaveTextContent('165 lb')
+    expect(screen.getByRole('button', { name: 'Optimize' })).toBeInTheDocument()
+    expect(configurationActionSlot()).toBe(slot)
+
+    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+
+    expect(totalOutput()).toHaveTextContent('165 lb')
+    expect(removeButtons(45)).toHaveLength(1)
+    expect(removeButtons(10)).toHaveLength(1)
+    expect(removeButtons(5)).toHaveLength(1)
+    expect(removeButtons(35)).toHaveLength(0)
+    expect(removeButtons(25)).toHaveLength(0)
+    expect(
+      screen.queryByRole('button', { name: 'Optimize' }),
+    ).not.toBeInTheDocument()
+    expect(configurationActionSlot()).toBe(slot)
+    expect(removeButtons(45)[0]).toHaveFocus()
+  })
+
+  it('S3-AC-015 hides Optimize for a manually entered greedy configuration', async () => {
+    render(<PlateCalculator />)
+
+    await addPlates([45, 10, 5])
+
+    expect(totalOutput()).toHaveTextContent('165 lb')
+    expect(
+      screen.queryByRole('button', { name: 'Optimize' }),
+    ).not.toBeInTheDocument()
+    expect(configurationActionSlot()).toBeEmptyDOMElement()
+  })
+
+  it('AC-CALC-007-4 compares denomination counts rather than plate count alone', async () => {
+    render(<PlateCalculator />)
+
+    await addPlates([35, 10, 5])
+
+    expect(totalOutput()).toHaveTextContent('145 lb')
+    expect(screen.getByRole('button', { name: 'Optimize' })).toBeInTheDocument()
   })
 })
 
@@ -259,5 +316,37 @@ describe('Slice 004 reverse visualization integration', () => {
     expect(
       screen.getAllByRole('button', { name: 'Remove 45 lb plate' }),
     ).toHaveLength(1)
+  })
+
+  it('S4-AC-015 replaces reverse graphics with the greedy configuration', async () => {
+    const user = userEvent.setup()
+    render(<PlateCalculator />)
+    await addPlates([35, 25])
+    const slot = configurationActionSlot()
+
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateWeight)).toEqual([
+      '35',
+      '25',
+    ])
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateColor)).toEqual([
+      'blue',
+      'yellow',
+    ])
+
+    await user.click(screen.getByRole('button', { name: 'Optimize' }))
+
+    expect(totalOutput()).toHaveTextContent('165 lb')
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateWeight)).toEqual([
+      '45',
+      '10',
+      '5',
+    ])
+    expect(reverseVisualPlates().map((plate) => plate.dataset.plateColor)).toEqual([
+      'red',
+      'green',
+      'black',
+    ])
+    expect(configurationActionSlot()).toBe(slot)
+    expect(screen.getByRole('button', { name: 'Remove 45 lb plate' })).toHaveFocus()
   })
 })

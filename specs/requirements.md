@@ -72,17 +72,18 @@ Acceptance criteria:
 - **AC-CALC-003-5:** 90 lb per side produces `45 + 45`.
 - **AC-CALC-003-6:** The sum of returned plates exactly equals the required side weight.
 
-### REQ-CALC-004 — Optional optimization
+### REQ-CALC-004 — Optional target-mode plate reduction
 
-The application shall determine a valid configuration with the minimum number of plates. If it uses fewer plates than the default configuration, the UI shall offer an Optimize action. Among equally minimal configurations, it shall prefer heavier plates lexicographically in denomination order.
+The application shall determine a valid configuration with the minimum number of plates. If it uses fewer plates than the default configuration, Target Weight → Plates shall offer a `Reduce plates` action. Among equally minimal configurations, it shall prefer heavier plates lexicographically in denomination order.
 
 Acceptance criteria:
 
 - **AC-CALC-004-1:** For 60 lb per side, default is `45 + 10 + 5` and optimized is `35 + 25`.
-- **AC-CALC-004-2:** Optimize is available for that 60 lb side load.
-- **AC-CALC-004-3:** Selecting Optimize replaces the displayed configuration without changing total weight.
-- **AC-CALC-004-4:** Optimize is absent when the default already has the minimum plate count.
+- **AC-CALC-004-2:** Reduce plates is available for that 60 lb side load.
+- **AC-CALC-004-3:** Selecting Reduce plates replaces the displayed configuration without changing total weight.
+- **AC-CALC-004-4:** Reduce plates is absent when the default already has the minimum plate count.
 - **AC-CALC-004-5:** Optimized results are ordered heaviest to lightest.
+- **AC-CALC-004-6:** Target mode permanently reserves a button-sized action area so showing or hiding Reduce plates does not move surrounding content. When unavailable, the button itself is absent from the accessibility tree.
 
 ## 3. Target input
 
@@ -137,6 +138,19 @@ Acceptance criteria:
 - **AC-CALC-006-4:** `[45, 45]` produces 225 lb.
 - **AC-CALC-006-5:** `[45, 35, 2.5]` produces 210 lb.
 
+### REQ-CALC-007 — Reverse-mode greedy optimization
+
+Plates → Total Weight shall compare the manually selected one-side plates with the REQ-CALC-003 greedy configuration for the same current total. When their denomination counts differ, the UI shall offer an `Optimize` action that replaces the manual selection with the greedy configuration without changing the total.
+
+Acceptance criteria:
+
+- **AC-CALC-007-1:** Manual `[35, 25]` at 165 lb makes Optimize available.
+- **AC-CALC-007-2:** Selecting Optimize replaces `[35, 25]` with `[45, 10, 5]` and preserves the 165 lb total.
+- **AC-CALC-007-3:** Optimize is absent for manual `[45, 10, 5]` because it already equals the greedy configuration.
+- **AC-CALC-007-4:** Availability compares denomination counts, not insertion order or plate count alone.
+- **AC-CALC-007-5:** The selected-plates section permanently reserves the Optimize action's space; showing or hiding the button shall not move surrounding content.
+- **AC-CALC-007-6:** When Optimize disappears after activation, focus moves to the first optimized graphical plate.
+
 ### REQ-UI-004 — Removal and ordering
 
 A displayed plate shall be removable by tapping it. Selected plates shall always display heaviest to lightest, regardless of insertion order.
@@ -173,7 +187,7 @@ The application shall provide a valid manifest, application name, icons, and sta
 
 ### REQ-PWA-002 — Offline operation
 
-After a successful online load has cached the current application assets, every version 1 calculator behavior shall work without a network connection, including launch, mode switching, target entry, rounding, default and optimized calculations, adding/removing plates, totals, and visualization.
+After a successful online load has cached the current application assets, every version 1 calculator behavior shall work without a network connection, including launch, mode switching, target entry, rounding, default and minimum-plate calculations, reverse-mode greedy optimization, adding/removing plates, totals, and visualization.
 
 ### REQ-PWA-003 — Static hosting
 

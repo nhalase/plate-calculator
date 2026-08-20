@@ -29,7 +29,7 @@ Do not implement the Slice 005 polish pass, animation, persistence, routing, PWA
 
 ### `src/components/TargetCalculator.tsx`
 
-- Render the shared `Barbell` in the existing result section after the textual plate result and before Optimize.
+- Render the shared `Barbell` in the existing result section after the textual plate result and before Reduce plates.
 - Pass the exact `plates` array already selected for textual output.
 - Use read-only mode and an accessible label equivalent to `Plates required on one side`.
 - Preserve target parsing, target state, rounding feedback, default/optimized selection, and mode-deactivation behavior unchanged.
@@ -352,7 +352,7 @@ Expected transitions:
 - 45 displays empty text and empty sleeve.
 - 155 displays text `45 + 10` and visual weights `[45, 10]`.
 - 165 initially displays `[45, 10, 5]`.
-- Optimize replaces both outputs with `[35, 25]`.
+- Reduce plates replaces both outputs with `[35, 25]`.
 - Any target change restores both outputs to the new default result.
 
 ## Reverse-calculator integration
@@ -517,7 +517,7 @@ In `TargetCalculator.test.tsx`:
 ### S4-AC-003 — Optimized target visualization
 
 - Commit 165 and assert default visual weights `[45, 10, 5]`.
-- Activate Optimize.
+- Activate Reduce plates.
 - Assert text `35 + 25`, visual weights `[35, 25]`, colors `[blue, yellow]`, and unchanged target 165.
 
 ### S4-AC-004 — Target reset synchronization
@@ -590,10 +590,16 @@ In `App.test.tsx`:
 - Use component tests for native removal buttons, accessible names, and focus recovery.
 - Use production browser verification for measured 44 px targets, visible focus on all six colors, internal-only overflow, automatic reveal, and absence of hover dependence.
 
+### S4-AC-015 — Reverse optimization visualization
+
+- Add 35 and 25 in `PlateCalculator.test.tsx` and assert blue/yellow graphical plates.
+- Activate Optimize and assert red 45, green 10, and black 5 graphical plates, unchanged 165 total, and focus on graphical 45.
+- Assert the persistent action-slot element remains mounted across the graphical replacement.
+
 ### Cross-slice regression assertions
 
 - Keep all existing calculation results unchanged.
-- Keep all Slice 002 target-input and optimization tests passing.
+- Keep all Slice 002 target-input and Reduce plates tests passing.
 - Keep all Slice 003 switching, addition, removal, total, focus, and reload tests passing.
 - Assert visualization code introduces no Calculate, Apply, Clear, Reset, persistence, or settings control.
 
@@ -603,7 +609,7 @@ Build and run the production preview. At a 320 CSS-pixel viewport:
 
 1. Inspect the empty target barbell and confirm hardware is recognizable.
 2. Set target 155 and confirm red 45 then green 10, correct labels, strict size difference, matching text, and no plate interaction.
-3. Set target 165, optimize, and confirm the visual changes from 45/10/5 to 35/25 without total change.
+3. Set target 165, activate Reduce plates, and confirm the visual changes from 45/10/5 to 35/25 without total change.
 4. Open the empty reverse calculator and confirm empty hardware and 45 lb total.
 5. Add every denomination and confirm order, colors, sizes, labels, total synchronization, and retained add-button focus.
 6. Use keyboard navigation to remove middle, final, and sole plates; confirm focus and internal reveal behavior.
@@ -616,7 +622,8 @@ Build and run the production preview. At a 320 CSS-pixel viewport:
    - document scroll position does not change during internal reveal.
 8. Confirm focus outlines remain visible on red, blue, yellow, green, black, and gray plates.
 9. Switch modes repeatedly and confirm each visualization matches its retained state.
-10. Confirm browser console errors are absent.
+10. In reverse mode, add 35 and 25, activate Optimize, and confirm the visual changes to 45/10/5 without total or surrounding-layout movement.
+11. Confirm browser console errors are absent.
 
 Record measured results in the implementation handoff. Do not add a screenshot or visual-regression framework in this slice.
 
