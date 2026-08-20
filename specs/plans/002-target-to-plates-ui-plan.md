@@ -251,10 +251,11 @@ const plates = configuration === 'optimized'
   : calculateDefaultPlates(activeTarget)
 ```
 
-- Render `No plates required` for an empty configuration.
-- Otherwise join the domain result with ` + `.
+The original Slice 002 textual-rendering steps are superseded by the shared visualization added in Slice 004. The Slice 002 state boundary continues to derive `plates`, but shall not reintroduce `Load both sides equally`, equivalent helper copy, a standalone empty-result message, or a visible ` + ` sequence. The implementation work for removing that obsolete markup belongs to the amended Slice 004 plan, preserving this plan's original no-visualization scope.
+
+- Keep the derived one-side configuration and default/optimized state transitions unchanged.
 - Render no duplicate opposite-side list.
-- Render no graphical plate, color, icon, or size treatment.
+- Preserve the `Plates per side` heading.
 
 ### Reduce plates
 
@@ -271,7 +272,7 @@ Use only `src/styles.css` and system fonts.
 - Avoid fixed widths wider than the viewport.
 - Lay out `−5` and `+5` in a two-column control row that can fit at 320 CSS pixels.
 - Set primary controls to at least 44 by 44 CSS pixels.
-- Allow target and result text to wrap safely.
+- Keep the `Plates per side` heading and visualization within the card width.
 - Provide clear `:focus-visible` outlines that are not clipped.
 - Use typography and spacing for hierarchy, without relying on plate colors.
 - Add no remote fonts, images, stylesheets, or scripts.
@@ -284,13 +285,13 @@ Create `src/components/TargetCalculator.test.tsx` and group tests by slice accep
 
 - Assert the level-two heading is exactly `Target weight (tap to change)`.
 - Assert 45 lb is the primary target.
-- Assert `No plates required`.
+- Assert no helper sentence or standalone empty-result message appears below `Plates per side`.
 - Assert Reduce plates is absent.
 - Assert no bar-weight configuration input exists.
 
 ### S2-AC-002 and S2-AC-003 — Increment/decrement
 
-- Activate `+5` and assert immediate target/result change without a Calculate control.
+- Activate `+5` and assert immediate target/configuration change without a Calculate control.
 - Verify `−5` above 45.
 - Verify the 45 lb floor.
 - Verify both controls clear existing feedback and restore default mode.
@@ -305,7 +306,7 @@ Create `src/components/TargetCalculator.test.tsx` and group tests by slice accep
 
 ### S2-AC-005 through S2-AC-007 — Valid commits
 
-- Commit 155 and verify `45 + 10` without feedback.
+- Commit 155 and verify derived configuration `[45, 10]` without feedback or a standalone `45 + 10` sequence.
 - Commit 137.5 and verify 135 plus request feedback.
 - Commit 138 and verify 140 plus request feedback.
 - Cover both Enter and blur paths.
@@ -327,8 +328,8 @@ Also verify below-bar finite input is valid and resolves to 45.
 
 ### S2-AC-010 and S2-AC-011 — Plate reduction
 
-- At 165, assert default `45 + 10 + 5` and visible Reduce plates.
-- Activate Reduce plates and assert `35 + 25`, unchanged total, hidden Reduce plates, and the same persistent action-slot element.
+- At 165, assert default visualization `[45, 10, 5]`, no standalone sequence, and visible Reduce plates.
+- Activate Reduce plates and assert visualization `[35, 25]`, unchanged total, hidden Reduce plates, and the same persistent action-slot element.
 - At a target with an already-minimal greedy result, assert Reduce plates is absent while the non-interactive slot remains.
 
 ### S2-AC-012 — Reset after target change
@@ -341,7 +342,7 @@ Also verify below-bar finite input is valid and resolves to 45.
 
 - Commit 163 to resolve to 165 with feedback.
 - Activate Reduce plates.
-- Assert 165, `35 + 25`, and the 163 lb feedback remain.
+- Assert 165, visualization `[35, 25]`, no standalone sequence, and the 163 lb feedback remain.
 
 ### Cross-cutting assertions
 

@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Goal
 
-Add one shared, one-sided barbell visualization to both calculator modes. Every displayed plate shall use its required denomination color, show its weight, use a deterministic relative size, and remain synchronized with the calculator's existing textual result and total.
+Add one shared, one-sided barbell visualization to both calculator modes. Every displayed plate shall use its required denomination color, show its weight, use a deterministic relative size, and remain synchronized with the calculator's derived configuration and total.
 
 In Target Weight → Plates, the visualization is read-only and represents the currently displayed default or optimized configuration. In Plates → Total Weight, each graphical plate remains an independently removable native control and preserves the Slice 003 removal and focus behavior.
 
@@ -227,11 +227,12 @@ Labels shall:
 The Target Weight → Plates result section shall contain:
 
 1. the existing `Plates per side` label;
-2. the existing textual result or empty-result text;
-3. the one-sided barbell visualization;
-4. the existing optional Reduce plates action.
+2. the one-sided barbell visualization;
+3. the existing optional Reduce plates action.
 
-The visualization shall receive exactly the configuration already used to produce the textual result:
+No `Load both sides equally` helper, equivalent instructional sentence, separate denomination sequence such as `45 + 10 + 5`, or standalone `No plates required` message shall appear between the heading and visualization. Numeric denomination labels inside the plates remain required.
+
+The visualization shall receive exactly the derived configuration:
 
 - the default configuration while default mode is selected;
 - the optimized configuration after Reduce plates is activated.
@@ -257,7 +258,7 @@ For an empty configuration, the description shall be equivalent to:
 One side: no plates
 ```
 
-The existing textual plate result remains available. Duplicate accessible announcements should be avoided by associating the visualization with that result or by hiding purely decorative sub-elements from the accessibility tree.
+The visualization's accessible description remains available and is the nonvisual equivalent of the omitted standalone sequence. Decorative plate internals shall not create duplicate accessible announcements.
 
 ## Reverse-mode visualization
 
@@ -265,7 +266,7 @@ The Plates → Total Weight selected-plates section shall use the shared visuali
 
 When no plates are selected, it shall render:
 
-- the existing `No plates loaded` text;
+- the `Plates per side` title followed directly by the visualization, with no helper or standalone empty-state text;
 - the empty shaft, collar, and sleeve;
 - no removal buttons.
 
@@ -313,16 +314,14 @@ No confirmation, animation delay, or separate calculation action is permitted.
 For active target 165 lb:
 
 ```text
-Default textual result: 45 + 10 + 5
 Default visual plates: red 45, green 10, black 5
 
-Optimized textual result: 35 + 25
 Optimized visual plates: blue 35, yellow 25
 ```
 
-Activating Reduce plates shall replace textual and visual configurations together without changing active total or rounding feedback.
+Activating Reduce plates shall replace the visual configuration and accessible description together without changing active total or rounding feedback.
 
-Changing the target afterward shall restore both textual and visual output to the new target's default configuration, as required by Slice 002.
+Changing the target afterward shall restore the visualization and accessible description to the new target's default configuration, as required by Slice 002.
 
 ## Overflow contract
 
@@ -349,13 +348,13 @@ At 320 CSS pixels, `document.documentElement.scrollWidth` shall equal its client
 - Reverse-mode plate elements shall be native buttons with action, denomination, and unit in their accessible names.
 - Every denomination shall be communicated by visible text in addition to color and size.
 - The selected sequence shall be available to assistive technology in heavy-to-light order.
-- The empty sleeve shall have text equivalent to `No plates loaded` or `No plates required` in its calculator context.
+- Both modes shall communicate the empty state through the visible empty bar and its accessible description, without standalone empty-result text.
 - Color tokens shall not be the only difference between denominations.
 - Plate-label contrast shall meet WCAG AA.
 - Keyboard focus on a graphical plate shall be clearly visible against every plate color.
 - Internal scrolling shall not trap keyboard focus.
 - Focused plate buttons shall be scrolled into view when necessary.
-- Existing live-total and textual-result announcements shall remain functional without adding a second competing live region.
+- Existing target and rounding announcements shall remain functional without adding a competing live region for the visualization.
 - Forced-colors mode shall retain plate outlines, labels, and focus indication even when authored colors are overridden.
 
 ## Mobile-layout contract
@@ -377,7 +376,7 @@ At a viewport width of 320 CSS pixels:
 ### S4-AC-001 — Empty target barbell
 
 Given the initial target is 45 lb,
-then the textual result is `No plates required`,
+then no standalone empty-result text appears below `Plates per side`,
 and a read-only one-sided barbell with shaft, collar, and empty sleeve is displayed,
 and no plate or removal control appears in the visualization.
 
@@ -386,7 +385,7 @@ Maps to REQ-DOM-001, REQ-UI-006, and REQ-UI-007.
 ### S4-AC-002 — Default target visualization
 
 Given the active target is 155 lb,
-then the textual result is `45 + 10`,
+then no standalone `45 + 10` sequence appears above the bar,
 and the visualization contains exactly two read-only plates,
 and their order from the collar is 45 then 10,
 and the 45 plate is red and taller than the green 10 plate,
@@ -397,9 +396,9 @@ Maps to REQ-CALC-003, REQ-DOM-003, and REQ-UI-006.
 ### S4-AC-003 — Optimized target visualization
 
 Given the active target is 165 lb,
-and the default textual and visual configuration is `45 + 10 + 5`,
+and the default visualization contains `45`, `10`, and `5`,
 when the user activates Reduce plates,
-then the textual and visual configuration becomes `35 + 25`,
+then the visualization contains `35` and `25`,
 and the visual plates are blue 35 then yellow 25,
 and the active total remains 165 lb.
 
@@ -409,7 +408,7 @@ Maps to REQ-CALC-004, REQ-DOM-003, and REQ-UI-006.
 
 Given the optimized 165 lb configuration is visible,
 when the user activates `+5`,
-then both textual and visual output show the default configuration for 170 lb,
+then the visualization and accessible description show the default configuration for 170 lb,
 and no stale 35 or 25 plate remains unless it belongs to that default result.
 
 Protects Slice 002 synchronization.
@@ -418,7 +417,7 @@ Protects Slice 002 synchronization.
 
 Given Plates → Total Weight is selected with no selected plates,
 then the current total is 45 lb,
-and `No plates loaded` is visible,
+and no helper or standalone empty-result text is visible between `Plates per side` and the empty bar,
 and the one-sided barbell shows an empty sleeve,
 and no removal button appears.
 
@@ -526,9 +525,19 @@ and the selected-plates section and action slot do not move.
 
 Maps to REQ-CALC-007 and REQ-UI-006.
 
+### S4-AC-016 — No redundant target sequence
+
+Given Target Weight → Plates is showing any empty, default, or reduced configuration,
+then `Plates per side` is followed directly by the shared barbell visualization,
+and no helper sentence, standalone denomination sequence, or empty-result message appears above the bar,
+and each loaded plate still shows its own numeric weight,
+and the visualization retains a complete accessible description of the fixed bar and one-side configuration.
+
+Maps to AC-UI-006-1 and AC-UI-006-2.
+
 ## Required automated tests
 
-Automated tests shall cover S4-AC-001 through S4-AC-013 and S4-AC-015. Tests shall interact through visible controls, accessible roles, names, text, and stable semantic plate attributes rather than implementation state.
+Automated tests shall cover S4-AC-001 through S4-AC-013 and S4-AC-015 through S4-AC-016. Tests shall interact through visible controls, accessible roles, names, text, and stable semantic plate attributes rather than implementation state.
 
 Tests shall additionally verify:
 
@@ -537,7 +546,7 @@ Tests shall additionally verify:
 - every color name maps to the required denomination;
 - target-mode plates have no button role or removal name;
 - reverse-mode plates retain one native button per instance;
-- textual and visual sequences match after target plate reduction, reverse optimization, additions, and removals;
+- visible plate order and accessible descriptions match after target plate reduction, reverse optimization, additions, and removals;
 - graphical rendering does not change calculation results;
 - no duplicate live region is introduced;
 - focused removal remains correct after a graphical plate unmounts;

@@ -40,7 +40,7 @@ It includes:
 - nearest-achievable-weight feedback;
 - default greedy plate results;
 - optional minimum-plate optimization;
-- textual per-side plate output;
+- a per-side result region that later slices may replace with the shared visualization;
 - keyboard and mobile interaction requirements;
 - automated component-level acceptance tests.
 
@@ -83,7 +83,7 @@ The view shall expose these elements in this order:
 5. Optional rounding feedback immediately associated with the target.
 6. `−5` and `+5` controls.
 7. Result section labeled `Plates per side`.
-8. Textual plate configuration or empty-result text.
+8. Per-side result content supplied by the current visualization contract.
 9. Optional `Reduce plates` action.
 
 Except for the exact target-section label `Target weight (tap to change)`, visual styling, capitalization, and punctuation may vary, but visible and accessible wording must communicate the same meaning. The direct-entry input retains the accessible name `Target weight`; the parenthetical instruction belongs to the visible section label and does not rename that input.
@@ -97,13 +97,13 @@ Active target: 45
 Requested target for feedback: none
 Editing: no
 Displayed configuration: default
-Plates per side: none
+Plates per side content: empty
 ```
 
 The view shall:
 
 - display `45 lb` prominently;
-- display `No plates required` in the per-side result;
+- display an empty per-side result state;
 - show `−5` and `+5` controls;
 - not show rounding feedback;
 - not show Reduce plates;
@@ -250,7 +250,7 @@ For a draft accepted by the direct-entry grammar:
 5. Clear feedback when the request equals the active target.
 6. Reset the displayed configuration to default.
 7. Exit editing.
-8. Update the target and plate result immediately.
+8. Update the target and derived plate configuration immediately.
 
 Required examples:
 
@@ -330,22 +330,21 @@ When default configuration is active:
 
 - obtain the result from Slice 001 `calculateDefaultPlates(activeTarget)`;
 - label the result `Plates per side`;
-- display denominations in the order returned by the domain;
-- separate multiple plates with a visible ` + ` delimiter;
+- retain denominations in the order returned by the domain for consumption by the shared visualization;
 - do not display plates for the opposite side separately;
-- do not display graphical plates or apply denomination colors.
+- do not render `Load both sides equally`, any equivalent helper sentence, a separate visible textual denomination sequence, or an empty-result message between `Plates per side` and the shared barbell visualization.
 
-Required examples:
+Required derived configurations:
 
-| Active target | Displayed result |
+| Active target | Derived one-side configuration |
 | ---: | --- |
-| 45 | `No plates required` |
-| 135 | `45` |
-| 155 | `45 + 10` |
-| 165 | `45 + 10 + 5` |
-| 225 | `45 + 45` |
+| 45 | `[]` |
+| 135 | `[45]` |
+| 155 | `[45, 10]` |
+| 165 | `[45, 10, 5]` |
+| 225 | `[45, 45]` |
 
-The target section shall show the total barbell weight. The result section shall explicitly communicate that the listed plates apply to each side.
+The target section shall show the total barbell weight. The `Plates per side` heading and shared visualization communicate that the displayed plates apply to each side without additional instructional copy. Plate numbers remain visible inside the graphical plates; the redundant helper, standalone sequence, and empty-result message are omitted.
 
 ## Optional optimization
 
@@ -356,7 +355,7 @@ The Reduce plates action shall be visible only when:
 
 Activating Reduce plates shall:
 
-1. replace the displayed result with `calculateOptimizedPlates(activeTarget)`;
+1. replace the visualization's configuration with `calculateOptimizedPlates(activeTarget)`;
 2. leave the active target unchanged;
 3. leave rounding feedback unchanged;
 4. hide the Reduce plates action;
@@ -367,8 +366,8 @@ The result section shall always render a fixed, button-sized action slot in the 
 For an active target of 165 lb:
 
 ```text
-Before: 45 + 10 + 5
-After:  35 + 25
+Before: [45, 10, 5]
+After:  [35, 25]
 Total:  165 lb in both states
 ```
 
@@ -387,7 +386,7 @@ Valid UI interactions shall not send network requests. Domain errors are program
 ## Accessibility contract
 
 - Use a `main` landmark for primary content.
-- Use logical heading levels for the application, target section, and result section.
+- Use logical heading levels for the application, target section, and `Plates per side` section.
 - Use native buttons for target editing, `−5`, `+5`, and Reduce plates.
 - The `−5` control shall have the accessible name `Decrease target by 5 pounds`.
 - The `+5` control shall have the accessible name `Increase target by 5 pounds`.
@@ -397,7 +396,7 @@ Valid UI interactions shall not send network requests. Domain errors are program
 - Keyboard focus shall remain visibly indicated.
 - No behavior shall require hover.
 - The `lb` unit shall be visibly or accessibly associated with target values.
-- Plate results shall be understandable as text without color, shape, or position.
+- Plate configurations shall remain understandable from visible plate labels and the visualization's accessible description without relying on color, shape, or position.
 - Rounding feedback shall be discoverable as associated text but shall not interrupt the user as an alert.
 
 ## Mobile-layout contract
@@ -407,7 +406,7 @@ At a viewport width of 320 CSS pixels:
 - the document shall not scroll horizontally;
 - the target value or input shall remain fully usable;
 - `−5` and `+5` shall remain visible without overlap;
-- the plate result shall wrap rather than overflow when necessary;
+- the visualization shall contain its own horizontal overflow when necessary;
 - primary interactive controls shall have a target size of at least 44 by 44 CSS pixels;
 - visible focus indicators shall not be clipped;
 - the workflow shall not require desktop hover behavior.
@@ -422,7 +421,7 @@ Given the view has just loaded,
 when no interaction has occurred,
 then the target section is visibly labeled `Target weight (tap to change)`,
 and the active target is 45 lb,
-and the result says `No plates required`,
+and no helper sentence or standalone empty-result message appears below `Plates per side`,
 and Reduce plates is absent,
 and no bar-weight configuration control exists.
 
@@ -433,7 +432,7 @@ Maps to AC-DOM-001-1 and AC-DOM-001-2.
 Given the active target is 45 lb,
 when the user activates `+5`,
 then the active target becomes 50 lb,
-and the per-side result updates immediately,
+and the per-side configuration updates immediately,
 and no Calculate or Submit action is required.
 
 Maps to AC-UI-001-1 and AC-UI-001-3.
@@ -443,7 +442,7 @@ Maps to AC-UI-001-1 and AC-UI-001-3.
 Given the active target is 45 lb,
 when the user activates `−5`,
 then the active target remains 45 lb,
-and the empty-bar result remains valid.
+and the empty-bar configuration remains valid.
 
 Given the active target is 50 lb,
 when the user activates `−5`,
@@ -467,7 +466,7 @@ Maps to AC-UI-002-1 and AC-UI-002-3.
 Given the active target is 45 lb and direct entry is active,
 when the user enters `155` and commits,
 then the active target becomes 155 lb,
-and the result becomes `45 + 10`,
+and the derived one-side configuration becomes `[45, 10]`,
 and no rounding feedback is shown,
 and no Calculate or Submit action is required.
 
@@ -514,9 +513,9 @@ and a following blur does not commit the cancelled draft.
 ### S2-AC-010 — Reduce an eligible result
 
 Given the active target is 165 lb,
-and the default result `45 + 10 + 5` is displayed,
+and the default configuration `[45, 10, 5]` is displayed in the visualization,
 when the user activates Reduce plates,
-then the result becomes `35 + 25`,
+then the visualization shows `[35, 25]`,
 and the active target remains 165 lb,
 and Reduce plates is no longer displayed,
 and the persistent action slot occupies the same position and size as before activation.
@@ -535,7 +534,7 @@ Maps to AC-CALC-004-4.
 ### S2-AC-012 — Reset optimization after target change
 
 Given the active target is 165 lb,
-and the optimized result `35 + 25` is displayed,
+and the optimized configuration `[35, 25]` is displayed in the visualization,
 when the user activates `+5`,
 then the active target becomes 170 lb,
 and rounding feedback is cleared,

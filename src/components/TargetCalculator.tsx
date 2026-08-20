@@ -146,8 +146,6 @@ export function TargetCalculator({ active = true }: TargetCalculatorProps = {}) 
     state.configuration === 'optimized'
       ? calculateOptimizedPlates(state.activeTarget)
       : calculateDefaultPlates(state.activeTarget)
-  const plateText =
-    plates.length === 0 ? 'No plates required' : plates.join(' + ')
 
   function beginEditing() {
     editingSessionCompleted.current = false
@@ -272,11 +270,7 @@ export function TargetCalculator({ active = true }: TargetCalculatorProps = {}) 
       </section>
 
       <section className="result-section" aria-labelledby="plates-heading">
-        <p className="eyebrow">Load both sides equally</p>
         <h2 id="plates-heading">Plates per side</h2>
-        <output className="plate-result" aria-live="polite">
-          {plateText}
-        </output>
 
         <Barbell
           mode="readonly"

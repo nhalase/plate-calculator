@@ -310,7 +310,7 @@ Do not render visible explanatory helper copy beneath the current total. The sel
 
 ### Empty state
 
-When `selectedPlates.length === 0`, render `No plates loaded` and no removal buttons.
+When `selectedPlates.length === 0`, render no removal buttons and no standalone empty-state message. The shared empty bar appears directly after the `Plates per side` title under the Slice 004 boundary.
 
 ### Removal controls
 
@@ -385,7 +385,7 @@ In `App.test.tsx`:
 
 - Activate Plates → Total Weight.
 - Assert its pressed state changes immediately.
-- Assert current total is 45 lb and `No plates loaded` is visible.
+- Assert current total is 45 lb and no helper or standalone empty-state text appears between `Plates per side` and the empty bar.
 - Assert all six add controls appear in descending DOM order.
 - Record and assert `window.location.href` is unchanged.
 

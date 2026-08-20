@@ -188,15 +188,6 @@ input:focus-visible,
   text-transform: none;
 }
 
-.eyebrow {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .target-control {
   display: flex;
   min-width: 0;
@@ -300,12 +291,6 @@ input:focus-visible,
 }
 
 .current-total:active { background: transparent; }
-
-.empty-plates {
-  margin: 0;
-  color: var(--secondary);
-  line-height: 1.45;
-}
 
 .add-plate-controls {
   display: grid;
@@ -462,16 +447,6 @@ button.barbell__plate:focus-visible {
   color: var(--secondary);
   font-size: 0.75rem;
   font-weight: 650;
-}
-
-.plate-result {
-  display: block;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  color: var(--text);
-  font-size: clamp(1.65rem, 8vw, 2.5rem);
-  font-weight: 750;
-  line-height: 1.15;
 }
 
 .configuration-action-slot {

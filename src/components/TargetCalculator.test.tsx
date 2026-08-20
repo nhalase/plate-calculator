@@ -49,7 +49,10 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     ).toBeInTheDocument()
     expect(targetButton()).toHaveTextContent('45')
     expect(targetButton()).toHaveTextContent('lb')
-    expect(screen.getByText('No plates required')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Plates per side' })).toBeInTheDocument()
+    expect(screen.queryByText('Load both sides equally')).not.toBeInTheDocument()
+    expect(screen.queryByText('No plates required')).not.toBeInTheDocument()
+    expect(visualWeights()).toEqual([])
     expect(
       screen.queryByRole('button', { name: 'Reduce plates' }),
     ).not.toBeInTheDocument()
@@ -65,7 +68,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.click(increaseButton())
 
     expect(targetButton()).toHaveTextContent('50')
-    expect(screen.getByRole('status')).toHaveTextContent('2.5')
+    expect(visualWeights()).toEqual(['2.5'])
     expect(
       screen.queryByRole('button', { name: /calculate|submit|apply/i }),
     ).not.toBeInTheDocument()
@@ -81,7 +84,8 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.click(increaseButton())
     await user.click(decreaseButton())
     expect(targetButton()).toHaveTextContent('45')
-    expect(screen.getByText('No plates required')).toBeInTheDocument()
+    expect(screen.queryByText('No plates required')).not.toBeInTheDocument()
+    expect(visualWeights()).toEqual([])
   })
 
   it('S2-AC-004 focuses, selects, and declares decimal input behavior', async () => {
@@ -105,7 +109,8 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await commitTarget('155')
 
     expect(targetButton()).toHaveTextContent('155')
-    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(screen.queryByText('45 + 10')).not.toBeInTheDocument()
+    expect(visualWeights()).toEqual(['45', '10'])
     expect(screen.queryByText(/Nearest loadable weight/i)).not.toBeInTheDocument()
   })
 
@@ -118,7 +123,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     expect(
       screen.getByText('Nearest loadable weight to 137.5 lb'),
     ).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('45')
+    expect(visualWeights()).toEqual(['45'])
   })
 
   it('S2-AC-007 commits upward rounding through blur', async () => {
@@ -166,7 +171,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.type(input, '{Enter}')
 
     expect(targetButton()).toHaveTextContent('165')
-    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['35', '25'])
     expect(
       screen.getByText('Nearest loadable weight to 163 lb'),
     ).toBeInTheDocument()
@@ -195,7 +200,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.type(input, '225{Escape}')
 
     expect(targetButton()).toHaveTextContent('165')
-    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['35', '25'])
     expect(
       screen.getByText('Nearest loadable weight to 163 lb'),
     ).toBeInTheDocument()
@@ -206,7 +211,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     render(<TargetCalculator />)
 
     await commitTarget('165')
-    expect(screen.getByText('45 + 10 + 5')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['45', '10', '5'])
     const actionSlot = document.querySelector(
       '[data-configuration-action-slot="true"]',
     )
@@ -215,7 +220,8 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     expect(targetButton()).toHaveTextContent('165')
-    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(screen.queryByText('35 + 25')).not.toBeInTheDocument()
+    expect(visualWeights()).toEqual(['35', '25'])
     expect(
       screen.queryByRole('button', { name: 'Reduce plates' }),
     ).not.toBeInTheDocument()
@@ -243,7 +249,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.click(increaseButton())
 
     expect(targetButton()).toHaveTextContent('170')
-    expect(screen.getByText('45 + 10 + 5 + 2.5')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['45', '10', '5', '2.5'])
     expect(screen.queryByText(/Nearest loadable weight/i)).not.toBeInTheDocument()
   })
 
@@ -255,7 +261,7 @@ describe('Slice 002 Target Weight to Plates UI', () => {
     await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     expect(targetButton()).toHaveTextContent('165')
-    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(visualWeights()).toEqual(['35', '25'])
     expect(
       screen.getByText('Nearest loadable weight to 163 lb'),
     ).toBeInTheDocument()
@@ -302,7 +308,8 @@ describe('Slice 004 target visualization integration', () => {
   it('S4-AC-001 renders an empty read-only barbell for the initial target', () => {
     render(<TargetCalculator />)
 
-    expect(screen.getByText('No plates required')).toBeInTheDocument()
+    expect(screen.queryByText('Load both sides equally')).not.toBeInTheDocument()
+    expect(screen.queryByText('No plates required')).not.toBeInTheDocument()
     expect(targetVisualization()).toHaveAccessibleName(
       'Plates required on one side. Fixed bar: 45 lb. One side: no plates',
     )
@@ -312,12 +319,12 @@ describe('Slice 004 target visualization integration', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('S4-AC-002 keeps default text and visual plates synchronized', async () => {
+  it('S4-AC-002 renders default visual plates without a standalone sequence', async () => {
     render(<TargetCalculator />)
 
     await commitTarget('155')
 
-    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(screen.queryByText('45 + 10')).not.toBeInTheDocument()
     expect(visualWeights()).toEqual(['45', '10'])
     const plates = targetVisualization().querySelectorAll<HTMLElement>(
       '[data-plate-weight]',
@@ -334,7 +341,7 @@ describe('Slice 004 target visualization integration', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('S4-AC-003 replaces default text and graphics together on Reduce plates', async () => {
+  it('S4-AC-003 replaces the visual configuration on Reduce plates', async () => {
     const user = userEvent.setup()
     render(<TargetCalculator />)
     await commitTarget('165')
@@ -343,7 +350,7 @@ describe('Slice 004 target visualization integration', () => {
     await user.click(screen.getByRole('button', { name: 'Reduce plates' }))
 
     expect(targetButton()).toHaveTextContent('165')
-    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(screen.queryByText('35 + 25')).not.toBeInTheDocument()
     expect(visualWeights()).toEqual(['35', '25'])
     expect(
       [...targetVisualization().querySelectorAll<HTMLElement>('[data-plate-color]')].map(
@@ -352,7 +359,7 @@ describe('Slice 004 target visualization integration', () => {
     ).toEqual(['blue', 'yellow'])
   })
 
-  it('S4-AC-004 resets text and graphics to the new default after a target change', async () => {
+  it('S4-AC-004 resets graphics to the new default after a target change', async () => {
     const user = userEvent.setup()
     render(<TargetCalculator />)
     await commitTarget('165')
@@ -360,7 +367,7 @@ describe('Slice 004 target visualization integration', () => {
 
     await user.click(increaseButton())
 
-    expect(screen.getByText('45 + 10 + 5 + 2.5')).toBeInTheDocument()
+    expect(screen.queryByText('45 + 10 + 5 + 2.5')).not.toBeInTheDocument()
     expect(visualWeights()).toEqual(['45', '10', '5', '2.5'])
   })
 })

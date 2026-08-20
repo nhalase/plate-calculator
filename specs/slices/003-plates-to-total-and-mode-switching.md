@@ -27,7 +27,7 @@ This slice extends the Slice 002 browser application. It defines the complete ob
 
 See [requirements.md](../requirements.md), [architecture.md](../architecture.md), [Slice 001](001-calculation-engine.md), and [Slice 002](002-target-to-plates-ui.md).
 
-REQ-CALC-005-3 and REQ-UI-004-2 require both an immediate total update and an immediate visualization update. This slice satisfies the total and textual selected-plate behavior. Their graphical-visualization portion remains explicitly pending until the shared visualization slice.
+AC-CALC-005-3 and AC-UI-004-2 require both an immediate total update and an immediate visualization update. This slice satisfies the total and textual selected-plate behavior. Their graphical-visualization portion remains explicitly pending until the shared visualization slice.
 
 ## Scope boundary
 
@@ -201,7 +201,7 @@ Current total: 45 lb
 The panel shall:
 
 - display `45 lb` prominently;
-- display explicit text equivalent to `No plates loaded`;
+- label the plate card `Plates per side` and place the empty visualization directly after that title without a helper sentence or standalone empty-state message;
 - display all six add controls;
 - expose no bar-weight setting;
 - expose no removal controls;
@@ -332,7 +332,7 @@ Because reset cannot depend on a pointer-specific gesture, the current-total tar
 Reset shall occur in one state transition and shall:
 
 1. replace the selected-plate collection with an empty collection;
-2. display `No plates loaded`;
+2. display the empty bar directly below `Plates per side` without a standalone empty-state message;
 3. derive and display the 45 lb empty-bar total through the existing Slice 001 calculation;
 4. update the shared barbell visualization to the empty bar;
 5. remove Optimize from sight and the accessibility tree while preserving its fixed action slot;
@@ -415,7 +415,7 @@ Given the initial application state,
 when the user activates Plates → Total Weight,
 then the mode changes without a reload,
 and `45 lb` is the prominent current total,
-and `No plates loaded` is displayed,
+and `Plates per side` is followed directly by the empty bar without helper or empty-state text,
 and all supported add controls are available in descending order.
 
 Maps to REQ-DOM-001, REQ-DOM-002, REQ-CALC-006, and REQ-UI-005.
@@ -558,7 +558,7 @@ when a pointer activates the current-total value twice within 500 milliseconds,
 then no state changes after the first activation,
 and after the second activation the selected plates are empty,
 and the current total is 45 lb,
-and `No plates loaded` and the empty-bar visualization are displayed,
+and the empty-bar visualization is displayed directly below `Plates per side` without standalone empty-state text,
 and Optimize is absent,
 and focus remains on the current-total reset control.
 

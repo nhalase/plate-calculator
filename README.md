@@ -15,7 +15,7 @@ This application was my first attempt at coding using a spec-driven development 
 
 | Target → Plates | Plates → Total |
 | --- | --- |
-| <img src="screenshots/slice-005-target-action-visible.png" alt="Target to Plates mode showing a 165 pound target and the plates to load on one side" width="320"> | <img src="screenshots/slice-005-reverse-action-visible.png" alt="Plates to Total mode showing a 165 pound total and selected plates on one side" width="320"> |
+| <img src="screenshots/01-target-reduce-available.png" alt="Target to Plates mode showing a 165 pound target and the plates to load on one side" width="320"> | <img src="screenshots/03-weight-optimize-available.png" alt="Plates to Total mode showing a 165 pound total and selected plates on one side" width="320"> |
 
 ## Features
 

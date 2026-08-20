@@ -191,10 +191,7 @@ export function PlateCalculator({ active = true }: PlateCalculatorProps) {
         className="plate-control-section"
         aria-labelledby="selected-heading"
       >
-        <h2 id="selected-heading">Plates on one side</h2>
-        {selectedPlates.length === 0 && (
-          <p className="empty-plates">No plates loaded</p>
-        )}
+        <h2 id="selected-heading">Plates per side</h2>
         <Barbell
           ref={barbellRef}
           mode="removable"

@@ -353,7 +353,7 @@ The fixed-bar notch label shall use the same sleeve-center reference. Its label 
 
 ## Empty, duplicate, and overflow states
 
-When no plates are loaded, the viewport shall still show the fixed-bar notch and a sleeve extending to the right. Existing `No plates required` or `No plates loaded` text remains visible in its calculator context.
+When no plates are loaded, the viewport shall still show the fixed-bar notch and a sleeve extending to the right. In both modes, `Plates per side` is the only visible text above the bar; no helper or standalone empty-result message is shown.
 
 Duplicate plates shall render as separate adjacent instances and shall continue growing the stack toward the right.
 
@@ -468,7 +468,8 @@ then the card heading is `Target weight (tap to change)`,
 and `165` is the dominant value in the Target Weight card,
 and `lb` is visibly associated but subordinate,
 and `−5` and `+5` are equal-size controls,
-and the result card shows `45 + 10 + 5`, the matching visualization, and Reduce plates.
+and the result card shows the matching `[45, 10, 5]` visualization and Reduce plates,
+and no helper sentence or standalone denomination sequence appears above the bar.
 
 ### S5-AC-005 — Reverse-mode hierarchy
 
@@ -576,8 +577,8 @@ S5-AC-001, S5-AC-004, S5-AC-005, S5-AC-008, and S5-AC-012 through S5-AC-015 requ
 
 Browser verification shall include:
 
-1. Target mode at 402 by 874 with active target 165 and default `45 + 10 + 5`.
-2. The same target after Reduce plates produces `35 + 25` without action-slot or surrounding-layout movement.
+1. Target mode at 402 by 874 with active target 165 and default `[45, 10, 5]` visualization, with no standalone sequence above it.
+2. The same target after Reduce plates produces a `[35, 25]` visualization without a standalone sequence, action-slot movement, or surrounding-layout movement.
 3. Reverse mode at 402 by 874 with manual `35 + 25`, total 165, and visible Optimize.
 4. The same reverse state after Optimize produces `45 + 10 + 5`, preserves total 165, moves focus as specified, and causes no action-slot or surrounding-layout movement.
 5. Computed center coordinates confirm that every plate-label block is within one CSS pixel of the sleeve centerline in both representative configurations.

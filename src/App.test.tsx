@@ -25,6 +25,16 @@ async function commitTarget(value: string) {
   return user
 }
 
+function targetVisualWeights() {
+  const visualization = screen.getByRole('img', {
+    name: /Plates required on one side/,
+  })
+
+  return [
+    ...visualization.querySelectorAll<HTMLElement>('[data-plate-weight]'),
+  ].map((plate) => plate.dataset.plateWeight)
+}
+
 describe('Slice 003 application mode integration', () => {
   it('S5-AC-002 renders the CSS-only product brand', () => {
     const { container } = render(<App />)
@@ -83,7 +93,8 @@ describe('Slice 003 application mode integration', () => {
     expect(screen.getByRole('status', { name: 'Current total' })).toHaveTextContent(
       '45 lb',
     )
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Plates per side' })).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /^Add / })).toHaveLength(6)
     expect(window.location.href).toBe(initialUrl)
     expect(
@@ -122,7 +133,7 @@ describe('Slice 003 application mode integration', () => {
     await user.click(targetModeButton())
 
     expect(targetButton()).toHaveTextContent('165')
-    expect(screen.getByText('35 + 25')).toBeInTheDocument()
+    expect(targetVisualWeights()).toEqual(['35', '25'])
     expect(
       screen.getByText('Nearest loadable weight to 163 lb'),
     ).toBeInTheDocument()
@@ -144,7 +155,7 @@ describe('Slice 003 application mode integration', () => {
       screen.queryByRole('textbox', { name: 'Target weight' }),
     ).not.toBeInTheDocument()
     expect(targetButton()).toHaveTextContent('155')
-    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(targetVisualWeights()).toEqual(['45', '10'])
     expect(screen.queryByText('45 + 45')).not.toBeInTheDocument()
   })
 
@@ -159,7 +170,7 @@ describe('Slice 003 application mode integration', () => {
     await user.click(targetModeButton())
 
     expect(targetButton()).toHaveTextContent('155')
-    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(targetVisualWeights()).toEqual(['45', '10'])
   })
 
   it('S3-AC-012 treats activation of the current target mode as a no-op', async () => {
@@ -171,7 +182,7 @@ describe('Slice 003 application mode integration', () => {
 
     expect(targetModeButton()).toHaveFocus()
     expect(targetButton()).toHaveTextContent('155')
-    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(targetVisualWeights()).toEqual(['45', '10'])
   })
 
   it('S3-AC-012 treats activation of the current reverse mode as a no-op', async () => {
@@ -221,7 +232,7 @@ describe('Slice 003 application mode integration', () => {
     expect(targetModeButton()).toHaveAttribute('aria-pressed', 'true')
     expect(targetButton()).toHaveTextContent('45')
     await user.click(reverseModeButton())
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(screen.getByRole('status', { name: 'Current total' })).toHaveTextContent(
       '45 lb',
     )
@@ -245,7 +256,7 @@ describe('Slice 003 application mode integration', () => {
 
     await user.click(targetModeButton())
     expect(targetButton()).toHaveTextContent('155')
-    expect(screen.getByText('45 + 10')).toBeInTheDocument()
+    expect(targetVisualWeights()).toEqual(['45', '10'])
   })
 
   it('S3-AC-016 cancels a pending reset activation across mode changes', async () => {

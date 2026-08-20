@@ -29,8 +29,10 @@ Do not implement the Slice 005 polish pass, animation, persistence, routing, PWA
 
 ### `src/components/TargetCalculator.tsx`
 
-- Render the shared `Barbell` in the existing result section after the textual plate result and before Reduce plates.
-- Pass the exact `plates` array already selected for textual output.
+- Render the shared `Barbell` directly after the `Plates per side` heading and before Reduce plates.
+- Pass the exact derived `plates` array to the visualization.
+- Remove target mode's `Load both sides equally` helper, redundant standalone denomination sequence, and empty-result text.
+- Remove reverse mode's standalone empty-result text so both plate cards place the bar directly after the same `Plates per side` title.
 - Use read-only mode and an accessible label equivalent to `Plates required on one side`.
 - Preserve target parsing, target state, rounding feedback, default/optimized selection, and mode-deactivation behavior unchanged.
 
@@ -265,7 +267,7 @@ For `mode="readonly"`:
 - combine or associate the caller-provided accessible label with that description;
 - render each visual plate as a non-interactive element;
 - hide decorative internals from separate accessibility traversal;
-- introduce no live region because the existing textual result already announces changes.
+- introduce no visualization live region; retain the existing target and rounding announcements.
 
 The visible numeric labels remain in the DOM even when their decorative descendants are hidden from assistive technology.
 
@@ -280,7 +282,7 @@ For `mode="removable"`:
 - render duplicate entries as duplicate buttons;
 - call `onRemovePlate(index, weight)` with the rendered index;
 - do not add a second live region;
-- keep the existing `No plates loaded` text in `PlateCalculator` for the empty state.
+- remove the existing `No plates loaded` text from `PlateCalculator`; the empty visualization and its accessible description provide the empty state.
 
 Do not render a hidden duplicate set of removal buttons.
 
@@ -349,11 +351,11 @@ Do not call `calculateDefaultPlates` or `calculateOptimizedPlates` a second time
 
 Expected transitions:
 
-- 45 displays empty text and empty sleeve.
-- 155 displays text `45 + 10` and visual weights `[45, 10]`.
+- 45 displays an empty sleeve, a complete accessible empty-state description, and no standalone empty-result text.
+- 155 displays visual weights `[45, 10]`, exposes the matching accessible description, and has no standalone `45 + 10` sequence.
 - 165 initially displays `[45, 10, 5]`.
-- Reduce plates replaces both outputs with `[35, 25]`.
-- Any target change restores both outputs to the new default result.
+- Reduce plates replaces the visual configuration and accessible description with `[35, 25]`.
+- Any target change restores both to the new default result.
 
 ## Reverse-calculator integration
 
@@ -500,7 +502,7 @@ Do not assert decorative pixel layout through JSDOM.
 
 In `TargetCalculator.test.tsx`:
 
-- assert initial text remains `No plates required`;
+- assert no helper or standalone empty-result text appears below `Plates per side`;
 - assert the named read-only visualization exists;
 - assert shaft, collar, and sleeve hooks exist;
 - assert no visual plate or removal button exists.
@@ -508,7 +510,7 @@ In `TargetCalculator.test.tsx`:
 ### S4-AC-002 — Default target visualization
 
 - Commit 155 through the existing UI.
-- Assert textual result `45 + 10`.
+- Assert no standalone `45 + 10` sequence appears above the visualization.
 - Assert visual data weights `[45, 10]` in DOM order.
 - Assert colors `[red, green]`.
 - Assert 45's declared height exceeds 10's.
@@ -518,19 +520,19 @@ In `TargetCalculator.test.tsx`:
 
 - Commit 165 and assert default visual weights `[45, 10, 5]`.
 - Activate Reduce plates.
-- Assert text `35 + 25`, visual weights `[35, 25]`, colors `[blue, yellow]`, and unchanged target 165.
+- Assert visual weights `[35, 25]`, colors `[blue, yellow]`, matching accessible description, no standalone sequence, and unchanged target 165.
 
 ### S4-AC-004 — Target reset synchronization
 
 - Starting from optimized 165, activate `+5`.
-- Assert text and visual weights both equal the Slice 001 default result for 170.
+- Assert visual weights and the accessible description both equal the Slice 001 default result for 170, with no standalone sequence.
 - Assert no stale optimized-only element remains.
 
 ### S4-AC-005 — Empty reverse barbell
 
 In `PlateCalculator.test.tsx`:
 
-- assert 45 lb total and `No plates loaded` remain;
+- assert 45 lb total remains and no standalone empty-state message is rendered;
 - assert empty hardware renders;
 - assert no removal button exists.
 
@@ -565,7 +567,7 @@ In `PlateCalculator.test.tsx`:
 ### S4-AC-011 — Non-color communication
 
 - Assert all plates contain visible numeric text.
-- Assert target retains its textual sequence.
+- Assert target retains visible plate labels and a complete accessible description without a standalone sequence.
 - Assert reverse buttons retain denomination and unit in accessible names.
 - Assert forced-colors CSS exists through a source-level or production-style inspection rather than attempting to emulate forced-colors in JSDOM.
 
@@ -583,7 +585,7 @@ In `App.test.tsx`:
 - create an optimized target visualization;
 - create a non-empty reverse visualization;
 - switch modes repeatedly;
-- assert each textual and visual configuration returns unchanged.
+- assert each visual configuration and accessible description returns unchanged.
 
 ### S4-AC-014 — Mobile and keyboard usability
 
@@ -595,6 +597,13 @@ In `App.test.tsx`:
 - Add 35 and 25 in `PlateCalculator.test.tsx` and assert blue/yellow graphical plates.
 - Activate Optimize and assert red 45, green 10, and black 5 graphical plates, unchanged 165 total, and focus on graphical 45.
 - Assert the persistent action-slot element remains mounted across the graphical replacement.
+
+### S4-AC-016 — No redundant target sequence
+
+- Cover empty, default, and reduced target configurations.
+- Assert both modes place the shared visualization directly after `Plates per side`, with no helper sentence, standalone denomination sequence, or empty-result message between them.
+- Assert visible numeric labels inside loaded plates remain present.
+- Assert the visualization's accessible description still contains the fixed bar and complete one-side configuration.
 
 ### Cross-slice regression assertions
 
@@ -608,7 +617,7 @@ In `App.test.tsx`:
 Build and run the production preview. At a 320 CSS-pixel viewport:
 
 1. Inspect the empty target barbell and confirm hardware is recognizable.
-2. Set target 155 and confirm red 45 then green 10, correct labels, strict size difference, matching text, and no plate interaction.
+2. Set target 155 and confirm red 45 then green 10, correct in-plate labels, strict size difference, matching accessible description, no standalone sequence above the bar, and no plate interaction.
 3. Set target 165, activate Reduce plates, and confirm the visual changes from 45/10/5 to 35/25 without total change.
 4. Open the empty reverse calculator and confirm empty hardware and 45 lb total.
 5. Add every denomination and confirm order, colors, sizes, labels, total synchronization, and retained add-button focus.

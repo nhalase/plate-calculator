@@ -170,7 +170,7 @@ Acceptance criteria:
 - **AC-UI-008-1:** With `[45, 10]` selected, double-tapping or double-clicking the current-total value clears all plates and changes the total from 155 lb to 45 lb.
 - **AC-UI-008-2:** The first pointer activation alone does not change the selected plates or total.
 - **AC-UI-008-3:** A second pointer activation more than 500 milliseconds later starts a new sequence and does not reset the load.
-- **AC-UI-008-4:** Reset displays `No plates loaded`, removes Optimize if present, and updates the visualization to the empty bar in the same state transition.
+- **AC-UI-008-4:** Reset removes Optimize if present and updates the visualization to the empty bar in the same state transition; it does not add a standalone empty-state message.
 - **AC-UI-008-5:** Reset requires no confirmation and leaves focus on the current-total reset control.
 - **AC-UI-008-6:** Resetting an already empty load is a no-op.
 - **AC-UI-008-7:** The reset control communicates both the current total and its reset purpose accessibly without adding a separate visible Reset button.
@@ -184,6 +184,9 @@ A persistent, one-action control shall switch between Target Weight → Plates a
 ### REQ-UI-006 — Visualization
 
 Both modes shall show one side of a simplified barbell. Each plate shall display its weight, use its assigned color, and be visually sized so larger denominations generally appear larger.
+
+- **AC-UI-006-1:** In both modes, the only visible text above the bar in the plate card is the `Plates per side` title, followed directly by the barbell visualization. No helper sentence, separate denomination sequence, or empty-result message appears between them.
+- **AC-UI-006-2:** Removing the standalone target-mode sequence does not remove plate-weight labels inside the visualization or its accessible description.
 
 ### REQ-UI-007 — Current total
 

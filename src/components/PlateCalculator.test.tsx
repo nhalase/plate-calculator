@@ -49,7 +49,8 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     expect(totalResetControl()).toHaveAccessibleName(
       'Current total 45 pounds. Reset plates',
     )
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Plates per side' })).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /^Remove / }),
     ).not.toBeInTheDocument()
@@ -107,7 +108,7 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     await addPlates([10, 45, 5, 25])
 
     const selectedRegion = screen.getByRole('region', {
-      name: 'Plates on one side',
+      name: 'Plates per side',
     })
     const labels = within(selectedRegion)
       .getAllByRole('button', { name: /^Remove / })
@@ -161,7 +162,7 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     await user.click(removeButtons(10)[0])
 
     expect(addButton(10)).toHaveFocus()
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
   })
 
   it('S3-AC-013 uses native, clearly named controls without helper copy', () => {
@@ -191,7 +192,7 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     fireEvent.click(reset, { detail: 1 })
 
     expect(totalOutput()).toHaveTextContent('45 lb')
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Remove / })).not.toBeInTheDocument()
     expect(reset).toHaveFocus()
     now.mockRestore()
@@ -225,7 +226,7 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     await user.keyboard('{Enter}')
 
     expect(totalOutput()).toHaveTextContent('45 lb')
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(reset).toHaveFocus()
   })
 
@@ -253,7 +254,7 @@ describe('Slice 003 Plates to Total Weight calculator', () => {
     await user.keyboard('{Enter}')
 
     expect(totalOutput()).toHaveTextContent('45 lb')
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(reset).toHaveFocus()
   })
 
@@ -326,7 +327,7 @@ describe('Slice 004 reverse visualization integration', () => {
     const { container } = render(<PlateCalculator />)
 
     expect(totalOutput()).toHaveTextContent('45 lb')
-    expect(screen.getByText('No plates loaded')).toBeInTheDocument()
+    expect(screen.queryByText('No plates loaded')).not.toBeInTheDocument()
     expect(reverseVisualPlates()).toHaveLength(0)
     expect(container.querySelector('[data-barbell-part="shaft"]')).not.toBeNull()
     expect(container.querySelector('[data-barbell-part="collar"]')).not.toBeNull()

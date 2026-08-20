@@ -544,7 +544,8 @@ In `App.test.tsx`:
 In `TargetCalculator.test.tsx`:
 
 - retain the 165 default result and Reduce plates workflow;
-- assert the exact `Target weight (tap to change)` heading, total/unit association, step controls, result text, visualization, and action all remain in their expected sections;
+- assert the exact `Target weight (tap to change)` heading, total/unit association, step controls, visualization, and action all remain in their expected sections;
+- assert no helper sentence, standalone denomination sequence, or empty-result message appears between `Plates per side` and the bar in either mode;
 - leave typography and equal control geometry to browser checks.
 
 ### S5-AC-005 — Reverse-mode hierarchy
@@ -634,7 +635,7 @@ Build the production bundle and run its local preview. Use a fresh browser state
 
 1. Confirm the CSS logo and `PLATE CALCULATOR` header.
 2. Confirm target is the left selected blue segment and reverse is the right inactive segment.
-3. Set target 165 and confirm large target hierarchy, equal step controls, result `45 + 10 + 5`, full-width Reduce plates, and fixed-bar notch.
+3. Set target 165 and confirm large target hierarchy, equal step controls, `[45, 10, 5]` plate visualization, full-width Reduce plates, fixed-bar notch, and only the `Plates per side` title above the bar.
 4. Measure notch, plate, sleeve, and label centers.
 5. Confirm physical order is notch/45/10/5/sleeve, the notch touches the first plate, and the stack begins at the left anchor.
 6. Activate Reduce plates and confirm 35/25, unchanged total, absent button, identical slot/card rectangles, and left-to-right plate order.
