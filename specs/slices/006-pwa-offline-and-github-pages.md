@@ -8,7 +8,7 @@ Approved and implemented
 
 Complete the Version 1 delivery boundary by making the existing calculator installable as a Progressive Web App, fully usable offline after one successful online load, safe to update, and deployable to the GitHub Pages project path for `nhalase/plate-calculator`.
 
-This slice packages and publishes the already completed application. It shall not change calculation results, calculator state transitions, interaction behavior, or the approved Slice 005 interface.
+This slice packages and publishes the already completed application. It shall not change calculation results or calculator state transitions. The detectable-update amendment adds only the update notice and its explicit reload action to the approved Slice 005 interface.
 
 ## Dependencies
 
@@ -28,6 +28,7 @@ This slice completes:
 - REQ-PWA-001 — Installability;
 - REQ-PWA-002 — Offline operation;
 - REQ-PWA-003 — Static hosting.
+- REQ-PWA-004 — Detectable, user-controlled updates.
 
 It also verifies that every Version 1 behavior delivered by Slices 001 through 005 remains available from the deployed, cached production application.
 
@@ -41,7 +42,9 @@ This slice includes:
 - registering a production service worker;
 - precaching the complete local application shell;
 - supporting offline launch and reload after one successful controlled online load;
-- defining automatic service-worker update and outdated-cache cleanup behavior;
+- defining detectable, user-controlled service-worker update behavior and outdated-cache cleanup;
+- checking for updates on registration, reconnection, foreground return, and a bounded visible-page interval;
+- displaying a non-blocking update notice only after a complete new shell is ready;
 - configuring Vite for the GitHub Pages `/plate-calculator/` project path;
 - adding a GitHub Actions workflow that builds and deploys `dist/` to GitHub Pages;
 - adding deterministic build-artifact verification;
@@ -52,8 +55,8 @@ This slice includes:
 This slice does not include:
 
 - new calculator behavior or domain rules;
-- any visual redesign or new navigation;
-- an Install button, installation tutorial, offline badge, update banner, toast, or settings screen;
+- any visual redesign or new navigation beyond the scoped update notice;
+- an Install button, installation tutorial, offline badge, dismissible toast, or settings screen;
 - persistence of calculator state across reloads or launches;
 - local storage, IndexedDB application data, accounts, synchronization, or a backend;
 - runtime caching of third-party resources or APIs;
@@ -100,7 +103,7 @@ Repository renaming or custom-domain support is outside this slice and would req
 
 ## Package and configuration contract
 
-The implementation shall add `vite-plugin-pwa` as a development dependency and update the lockfile through the repository's existing `pnpm` workflow.
+The implementation shall add `vite-plugin-pwa` and its application-owned registration runtime, `workbox-window`, as development dependencies and update the lockfile through the repository's existing `pnpm` workflow.
 
 `vite.config.ts` shall retain the existing React and Vitest configuration and add:
 
@@ -109,7 +112,7 @@ The implementation shall add `vite-plugin-pwa` as a development dependency and u
 - manifest generation;
 - production service-worker registration;
 - precaching and obsolete-cache cleanup;
-- an automatic-update registration strategy;
+- a prompt-based update registration strategy controlled by application code;
 - no enabled service worker during normal development.
 
 The implementation shall use the plugin's generated-service-worker strategy. A hand-authored service worker is not required because Version 1 has no runtime API, routing, or custom caching requirement.
@@ -185,7 +188,8 @@ Registration shall:
 - be derived from the configured Vite base rather than a hard-coded origin-root URL;
 - occur automatically without an extra user action;
 - fail without breaking the online calculator if service workers are unsupported or registration is rejected;
-- create no visible status, install, or update UI;
+- create no install or offline-status UI;
+- expose a ready update to the application without automatically reloading it;
 - create no duplicate registrations during a normal page lifetime.
 
 The application shall remain an ordinary functional website in browsers that do not support PWA installation or service workers.
@@ -246,20 +250,51 @@ From a successfully cached production build, all of the following shall work wit
 
 Fresh application state remains intentional. Reloading or relaunching offline shall return to the established initial mode and calculator values because Version 1 does not persist calculator state.
 
-## Automatic update behavior
+## Detectable update behavior
 
-This slice shall use automatic service-worker updates and shall not introduce update UI.
+The application shall use the service worker's prompt update lifecycle. It shall retain the generated precache, navigation fallback, offline operation, and outdated-cache cleanup.
 
-When a newer deployment is discovered online:
+### Update checks
 
-- the new worker and its complete new precache shall install before taking control;
-- the new worker shall become active without requiring the user to find or confirm an update prompt;
-- obsolete versioned caches owned by this application shall be removed after the replacement activates;
-- the next navigation or reload shall use one coherent new application shell;
-- the update flow shall not combine an old HTML entry with missing new hashed assets;
-- unrelated caches from another origin or application shall never be deleted.
+In a supported production environment, the application shall request an update check:
 
-An already rendered document may continue using the assets it has loaded until navigation or reload. This slice does not force an interruption during an active calculation and does not preserve that calculation across an eventual reload.
+1. when service-worker registration completes;
+2. when the browser fires `online` after connectivity returns;
+3. when `visibilitychange` returns the document to `visible`; and
+4. every 60 minutes while the document remains visible and `navigator.onLine` is true.
+
+Checks triggered by registration, `online`, or `visibilitychange` shall be throttled so no two checks begin less than five minutes apart. The 60-minute interval is measured from the most recent attempted check. No interval or listener shall be installed more than once, including under React Strict Mode.
+
+Before calling `registration.update()`, the application shall request the registered service-worker URL with `cache: 'no-store'`. A non-success response, offline state, installing worker, rejected fetch, or rejected update ends that check silently and leaves the application usable. Update checks shall not modify calculator state or display loading UI.
+
+### Ready-update notice
+
+When the registration helper reports that a complete new worker is waiting:
+
+- display a persistent notice with visible text `Update available` and one native button labeled `Update app`;
+- expose the notice as a polite status without moving focus to it;
+- keep it present until the user updates or the document unloads;
+- do not provide a dismiss action in Version 1;
+- render it as a fixed bottom notice above the device safe area;
+- reserve sufficient page-end space at all times so the fixed notice cannot permanently cover calculator controls;
+- do not change the position or dimensions of surrounding calculator cards when it appears;
+- keep the button at least 44 by 44 CSS pixels and visibly focusable.
+
+The notice shall not appear for initial offline readiness, registration failure, an ordinary offline state, or a check that finds no update.
+
+### Applying an update
+
+Until `Update app` is activated, the current document and all session-only calculator state shall remain unchanged. Activating it shall:
+
+1. disable the action against repeated activation and visibly communicate `Updating…`;
+2. invoke the registration helper's update function with reload enabled;
+3. allow the completely installed worker to take control;
+4. reload exactly once into the coherent new shell; and
+5. return to the established fresh application state because calculator persistence remains out of scope.
+
+If activation fails before reload, the notice shall return to `Update available` with an enabled `Update app` action so the user can retry. Offline functionality and the currently cached shell shall remain intact.
+
+Obsolete versioned caches owned by this application shall be removed after replacement activation. The update flow shall not combine old HTML with missing new hashed assets and shall never delete unrelated caches.
 
 ## GitHub Pages workflow contract
 
@@ -330,11 +365,11 @@ New automated coverage shall map assertions to these Slice 006 acceptance criter
 - S6-AC-003: project-path-safe HTML and asset URLs;
 - S6-AC-004: generated service worker and application-shell precache;
 - S6-AC-005: absence of remote runtime dependencies;
-- S6-AC-006: automatic update and outdated-cache configuration;
+- S6-AC-006: update-check triggers, ready-update notice, user-controlled activation, coherent replacement, and outdated-cache cleanup;
 - S6-AC-011: workflow triggers, permissions, commands, artifact path, and Pages deployment job;
 - S6-AC-012: development service worker remains disabled and existing application code remains free of persistence behavior.
 
-Static configuration tests may inspect authored configuration and workflow data. Production artifact assertions shall inspect a freshly generated `dist/` directory. Tests shall not assert incidental Workbox hashes or minified implementation text when an observable file or configuration contract can be asserted instead.
+Component tests shall mock the registration boundary rather than install a service worker in jsdom. They shall verify notice visibility, wording, focus behavior, one-shot activation, failure recovery, and unchanged calculator state. Static configuration tests may inspect authored configuration and workflow data. Production artifact assertions shall inspect a freshly generated `dist/` directory. Tests shall not assert incidental Workbox hashes or minified implementation text when an observable file or configuration contract can be asserted instead.
 
 S6-AC-007 through S6-AC-010 require real-browser production verification because jsdom and static artifact inspection cannot prove service-worker control, offline navigation, installed display behavior, or cache-version transitions.
 
@@ -365,8 +400,8 @@ Use a fresh browser context and a production server that serves the application 
 While still offline:
 
 1. Enter `137.5` and confirm it resolves downward to 135 with adjustment feedback.
-2. Enter 165 and confirm default `45 + 10 + 5`.
-3. Activate `Reduce plates` and confirm `35 + 25` without changing 165.
+2. Enter 165 and confirm the default `[45, 10, 5]` visualization.
+3. Activate `Reduce plates` and confirm the `[35, 25]` visualization without changing 165.
 4. Exercise `−5`, `+5`, invalid-input recovery, and mode switching.
 
 ### Offline reverse workflow
@@ -376,7 +411,7 @@ While still offline:
 1. Switch to Plates → Total.
 2. Add 35 and 25 and confirm total 165 and visible Optimize.
 3. Remove and re-add a graphical plate and confirm total, ordering, and focus behavior.
-4. Activate Optimize and confirm `45 + 10 + 5`, unchanged total 165, and correct focus recovery.
+4. Activate Optimize and confirm `[45, 10, 5]`, unchanged total 165, and correct focus recovery.
 5. Add duplicates and enough plates to confirm the visualization still overflows internally.
 
 ### Update lifecycle
@@ -385,10 +420,14 @@ Use two distinguishable production builds or equivalent controlled service-worke
 
 1. Load and control the page with build A.
 2. Serve build B at the same origin and project path.
-3. Restore online access and trigger the normal update check through navigation or reload.
-4. Confirm build B installs and becomes active without an application prompt.
-5. Confirm the next navigation or reload returns build B with all required assets.
-6. Confirm the old application cache is removed and no mixed-version resource error occurs.
+3. Restore online access and trigger an update check through each contracted path: registration, an `online` event, a return to visible state, and the 60-minute interval.
+4. Confirm build B installs completely but build A remains rendered and its calculator state is unchanged.
+5. Confirm the fixed `Update available` notice appears without receiving focus or moving calculator-card geometry.
+6. Confirm repeated triggers inside five minutes do not begin duplicate checks and only one notice/registration exists.
+7. Activate `Update app` and confirm it changes to `Updating…`, promotes build B, and reloads exactly once.
+8. Confirm the reloaded document uses build B with all required assets and established fresh calculator state.
+9. Confirm the old application cache is removed, unrelated cache remains, and no mixed-version resource error occurs.
+10. Repeat with a failed check and failed activation; confirm the current cached app remains usable and the action becomes retryable after activation failure.
 
 ### Deployed Pages verification
 
@@ -448,15 +487,19 @@ and core behavior does not depend on a backend.
 
 Maps to REQ-PWA-002 and REQ-PWA-003.
 
-### S6-AC-006 — Coherent automatic updates
+### S6-AC-006 — Detectable, user-controlled coherent updates
 
 Given build A currently controls the application and build B becomes available online,
-when the normal service-worker update lifecycle runs,
-then build B installs and activates without an in-app confirmation prompt,
-and the next navigation or reload uses build B's coherent shell,
+when a contracted update check discovers and completely installs build B,
+then build A and its calculator state remain active,
+and a non-focus-stealing `Update available` notice exposes one `Update app` action without moving surrounding content,
+and activating that action changes it to `Updating…`, promotes build B, and reloads exactly once into build B's coherent shell,
 and obsolete application caches are removed without deleting unrelated caches.
 
-Maps to REQ-PWA-002.
+Given no update exists, the browser is offline, or an update check fails,
+then no update notice is displayed and the current online or cached calculator remains usable.
+
+Maps to REQ-PWA-002 and REQ-PWA-004.
 
 ### S6-AC-007 — Cached offline launch and reload
 
@@ -488,7 +531,7 @@ Maps to REQ-PWA-002.
 Given service workers or PWA installation are unsupported or registration fails,
 when the application is loaded online,
 then both calculator modes remain functional as an ordinary website,
-and no installability or offline-only UI is shown.
+and no installability, offline-only, or update UI is shown.
 
 Maps to REQ-PWA-001 and REQ-PWA-002.
 
@@ -533,12 +576,12 @@ Slice 006 is complete when:
 - production assets and registration are project-path safe;
 - the generated service worker controls the production application and precaches its complete shell;
 - offline reload and every representative workflow pass in a real browser;
-- automatic update replacement and obsolete-cache cleanup are verified;
+- contracted update detection, user-controlled replacement, and obsolete-cache cleanup are verified;
 - the artifact verifier passes against a fresh build;
 - all prior automated tests remain green;
 - the GitHub Pages workflow is present and locally reviewable;
 - after an explicitly authorized push, the workflow and deployed project URL are verified;
-- no calculator behavior, UI scope, persistence, remote dependency, or later-slice feature is introduced.
+- no calculator behavior, persistence, remote dependency, or UI beyond the contracted update notice is introduced.
 
 ## Deterministic decisions
 
@@ -550,7 +593,9 @@ This specification resolves the implementation choices as follows:
 - the application remains orientation-responsive rather than locked;
 - the service worker is generated by `vite-plugin-pwa` and disabled in normal development;
 - all required runtime assets are precached and no remote runtime caching is added;
-- update activation is automatic and has no application UI;
+- update detection is automatic but activation and reload require the visible `Update app` action;
+- registration, reconnection, foreground return, and a 60-minute visible-page interval trigger throttled update checks;
+- the fixed notice never takes focus or changes calculator-card geometry;
 - reloads intentionally reset calculator state;
 - GitHub Actions deploys `dist/` directly to Pages from `main` without a deployment branch;
 - Pages repository settings remain a documented external prerequisite;

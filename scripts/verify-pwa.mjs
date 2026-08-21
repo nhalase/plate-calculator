@@ -288,9 +288,11 @@ const serviceWorkerPath = serviceWorkerFiles[0]
   : path.join(distDirectory, 'sw.js')
 const serviceWorker = await readRequiredFile(serviceWorkerPath)
 check(serviceWorker.length > 0, 'generated service worker must not be empty')
-check(/skipWaiting/.test(serviceWorker), 'service worker must activate updates with skipWaiting')
-check(/clients\.claim/.test(serviceWorker), 'service worker must claim clients')
 check(/index\.html/.test(serviceWorker), 'service worker must provide an application navigation fallback')
+check(
+  /SKIP_WAITING/.test(serviceWorker),
+  'service worker must support user-triggered promotion of a waiting update',
+)
 
 const runtimeFiles = distFiles.filter(
   (file) => /\.(?:html|js|css|png|webmanifest)$/.test(file) && file !== 'sw.js',
@@ -305,8 +307,17 @@ for (const forbidden of ['src/', 'specs/', 'screenshots/', '.github/', '.git/', 
   check(!serviceWorker.includes(forbidden), `service-worker precache contains prohibited path: ${forbidden}`)
 }
 
+const injectedRegistrationFiles = distFiles.filter((candidate) =>
+  /(^|\/)registerSW\.js$/.test(candidate),
+)
+check(
+  injectedRegistrationFiles.length === 0,
+  'build must not emit a plugin-injected registerSW.js',
+)
 const registrationSources = [indexHtml]
-for (const file of distFiles.filter((candidate) => /(^|\/)registerSW\.js$/.test(candidate))) {
+for (const file of distFiles.filter(
+  (candidate) => candidate.endsWith('.js') && candidate !== 'sw.js',
+)) {
   registrationSources.push(await readRequiredFile(path.join(distDirectory, ...file.split('/'))))
 }
 const registrationText = registrationSources.join('\n')
@@ -346,12 +357,16 @@ check(
   'verify:pwa script is incorrect',
 )
 check(Boolean(packageJson.devDependencies?.['vite-plugin-pwa']), 'vite-plugin-pwa must be a dev dependency')
+check(
+  Boolean(packageJson.devDependencies?.['workbox-window']),
+  'workbox-window must be an explicit dev dependency for application-owned registration',
+)
 
 const viteConfig = await readRequiredFile(path.join(repositoryRoot, 'vite.config.ts'))
 for (const required of [
   "base: '/plate-calculator/'",
-  "registerType: 'autoUpdate'",
-  "injectRegister: 'auto'",
+  "registerType: 'prompt'",
+  'injectRegister: false',
   "strategies: 'generateSW'",
   'cleanupOutdatedCaches: true',
   'inlineWorkboxRuntime: true',
@@ -359,6 +374,16 @@ for (const required of [
   check(viteConfig.includes(required), `Vite PWA configuration is missing: ${required}`)
 }
 check(!/devOptions\s*:/.test(viteConfig), 'development service worker must remain disabled')
+
+const pwaSource = await readRequiredFile(path.join(repositoryRoot, 'src', 'pwa.ts'))
+check(
+  pwaSource.includes("from 'virtual:pwa-register'"),
+  'application-owned PWA registration must use virtual:pwa-register',
+)
+check(
+  pwaSource.includes('updateServiceWorker(true)'),
+  'update action must request waiting-worker activation and reload',
+)
 
 const workflow = await readRequiredFile(
   path.join(repositoryRoot, '.github', 'workflows', 'deploy-pages.yml'),

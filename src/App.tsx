@@ -6,6 +6,7 @@ import {
 } from './components/ModeSelector'
 import { PlateCalculator } from './components/PlateCalculator'
 import { TargetCalculator } from './components/TargetCalculator'
+import { UpdateNotice } from './components/UpdateNotice'
 
 export function App() {
   const [mode, setMode] = useState<CalculatorMode>('target-to-plates')
@@ -32,6 +33,8 @@ export function App() {
       <div hidden={mode !== 'plates-to-total'}>
         <PlateCalculator active={mode === 'plates-to-total'} />
       </div>
+
+      <UpdateNotice />
     </main>
   )
 }

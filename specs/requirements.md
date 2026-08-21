@@ -210,6 +210,16 @@ After a successful online load has cached the current application assets, every 
 
 The production application shall be deployable to a GitHub Pages project path as static assets. Core behavior shall not require remotely hosted scripts, styles, fonts, or APIs.
 
+### REQ-PWA-004 — Detectable, user-controlled updates
+
+While online, the installed application shall actively check for a newer service worker and visibly notify the user after a complete new application shell is ready. The current calculator session shall continue unchanged until the user explicitly activates the update action.
+
+- **AC-PWA-004-1:** Update checks occur on production registration, after connectivity returns, when the document returns to the foreground, and at least once per hour while it remains visible and online.
+- **AC-PWA-004-2:** A ready update displays a persistent, keyboard-accessible `Update app` action without moving surrounding calculator content or taking focus.
+- **AC-PWA-004-3:** Ignoring the notice leaves the current document and calculator state unchanged.
+- **AC-PWA-004-4:** Activating `Update app` promotes the fully installed worker and reloads into one coherent new application shell.
+- **AC-PWA-004-5:** Offline operation and the previously cached application remain available when an update check fails or the device is offline.
+
 ## 7. Non-requirements
 
 Version 1 does not include accounts, synchronization, persistence, favorites, kilograms, configurable equipment, constrained inventory, asymmetric loading, workout features, or a backend.

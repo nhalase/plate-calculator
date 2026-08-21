@@ -60,7 +60,45 @@ input:focus-visible,
   width: min(100%, 480px);
   min-height: 100vh;
   margin-inline: auto;
-  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(116px, calc(env(safe-area-inset-bottom) + 104px)) max(20px, env(safe-area-inset-left));
+}
+
+.update-notice {
+  position: fixed;
+  z-index: 10;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  display: flex;
+  width: min(calc(100% - 24px), 456px);
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-inline: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 55%);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.update-notice button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 10px 16px;
+  color: #ffffff;
+  background: var(--accent);
+  font-weight: 750;
+}
+
+.update-notice button:hover { background: var(--accent-hover); }
+.update-notice button:active { background: var(--accent-active); }
+.update-notice button:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .app-header {

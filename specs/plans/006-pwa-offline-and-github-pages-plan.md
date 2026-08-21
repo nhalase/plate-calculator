@@ -8,13 +8,13 @@ Approved and implemented
 
 [Slice 006: PWA, Offline Operation, and GitHub Pages](../slices/006-pwa-offline-and-github-pages.md)
 
-This plan implements the approved Slice 006 release boundary without changing the completed calculator domain, React state model, interaction behavior, or Slice 005 visual design.
+This plan implements the amended Slice 006 release boundary without changing the completed calculator domain or calculator state model. It adds only the contracted update notice and explicit reload action to the Slice 005 interface.
 
 ## Scope
 
-Add a generated offline-capable PWA build, deterministic local app icons, `/plate-calculator/` production-path handling, build-artifact verification, and a least-privilege GitHub Pages workflow. Verify installability, offline workflows, service-worker updates, and the deployed project URL.
+Retain the generated offline-capable PWA build, deterministic local app icons, `/plate-calculator/` production-path handling, build-artifact verification, and least-privilege GitHub Pages workflow. Add explicit update detection, a stable update notice, and user-controlled activation while preserving all offline workflows.
 
-Do not add application persistence, a custom service worker, install or update UI, client-side routing, runtime APIs, remote assets, telemetry, a custom domain, new calculator behavior, visual redesign, or later-slice placeholders.
+Do not add application persistence, a custom service worker, install UI, offline-status UI, client-side routing, runtime APIs, remote assets, telemetry, a custom domain, new calculator behavior, visual redesign beyond the update notice, or later-slice placeholders.
 
 ## Authoritative implementation choices
 
@@ -22,8 +22,9 @@ The plan uses the following approved choices:
 
 - Vite production base: `/plate-calculator/`.
 - PWA strategy: `generateSW` through `vite-plugin-pwa`.
-- Registration strategy: plugin-injected production registration with `registerType: 'autoUpdate'`.
-- Current-page update behavior: do not import `virtual:pwa-register` and do not force-reload an active calculation; the newly activated worker supplies the next navigation or reload.
+- Registration strategy: application-owned production registration through `virtual:pwa-register` with the prompt lifecycle; disable plugin-injected registration.
+- Update checks: registration completion, `online`, return to visible state, and 60 minutes after the most recent attempt while visible and online, with a five-minute minimum between attempts.
+- Current-page update behavior: show `Update available` only after a complete worker is waiting; reload only when the user activates `Update app`.
 - Cache strategy: precache-only application shell with navigation fallback; no runtime API or third-party caching routes.
 - Icon format: deterministic opaque PNG files generated locally from the approved barbell mark.
 - Deployment: official GitHub Pages artifact workflow from `main`; no committed `dist/` and no `gh-pages` branch.
@@ -56,6 +57,7 @@ Action revisions may be pinned to immutable commit SHAs during implementation. I
 
 - Add `"packageManager": "pnpm@11.19.0"`.
 - Add `vite-plugin-pwa` as a development dependency through pnpm; do not hand-edit its resolved version.
+- Add `workbox-window` as an explicit development dependency because application-owned `virtual:pwa-register` code imports it at runtime under pnpm's strict dependency layout.
 - Add `"generate:icons": "node scripts/generate-pwa-icons.mjs"`.
 - Add `"verify:pwa": "node scripts/verify-pwa.mjs"`.
 - Preserve the existing `dev`, `build`, `test`, and `typecheck` commands.
@@ -63,7 +65,7 @@ Action revisions may be pinned to immutable commit SHAs during implementation. I
 
 #### `pnpm-lock.yaml`
 
-- Regenerate only through the package-manager operation that installs `vite-plugin-pwa`.
+- Regenerate only through package-manager operations that install `vite-plugin-pwa` and the explicit `workbox-window` registration runtime.
 - Confirm the lockfile remains version 9 and a subsequent `pnpm install --frozen-lockfile` succeeds.
 - Do not update unrelated dependencies deliberately.
 
@@ -81,8 +83,8 @@ Use configuration equivalent to:
 
 ```ts
 VitePWA({
-  registerType: 'autoUpdate',
-  injectRegister: 'auto',
+  registerType: 'prompt',
+  injectRegister: false,
   strategies: 'generateSW',
   includeAssets: [
     'pwa-192x192.png',
@@ -127,13 +129,56 @@ Do not add `orientation`, screenshots, shortcuts, categories, share targets, han
 
 #### `src/main.tsx`
 
-No change is planned.
+Import and call `initializePwaUpdates()` before or after the initial React render. The initializer is production-safe and internally guarded, so React Strict Mode and repeated imports cannot create duplicate registrations, timers, or listeners.
 
-The PWA plugin's injected registration is sufficient for silent registration and automatic worker activation. Do not import `virtual:pwa-register`: the official auto-update helper can reload open tabs, which would discard session-only calculator input and contradict the approved non-interruption behavior.
+Do not call the virtual registration helper directly from a React effect.
 
 #### `src/vite-env.d.ts` and `tsconfig.json`
 
-No change is planned because no virtual PWA module is imported by application TypeScript.
+Add the `vite-plugin-pwa/client` type reference needed by `virtual:pwa-register`. Preserve all existing compiler options.
+
+#### `src/pwa.ts`
+
+Create the single registration and update-state boundary. It shall:
+
+- import `registerSW` from `virtual:pwa-register`;
+- guard initialization at module scope;
+- expose `initializePwaUpdates()`, `subscribeToPwaUpdates(listener)`, `getPwaUpdateSnapshot()`, and `applyPwaUpdate()`;
+- represent UI state as `'idle' | 'ready' | 'applying'`;
+- retain the helper-returned update function and the `ServiceWorkerRegistration` without placing either in React state;
+- request checks through one throttled function using a five-minute minimum and one rescheduled 60-minute timer;
+- check only while online, visible, and not already installing;
+- fetch `swUrl` with `cache: 'no-store'` and no-cache request headers before `registration.update()`;
+- attach exactly one `online` listener, one `visibilitychange` listener, and one scheduled timer;
+- set state to `ready` only from `onNeedRefresh`;
+- ignore `onOfflineReady` for visible UI;
+- set state to `applying` before calling the helper update function with reload enabled;
+- return to `ready` if that promise rejects before reload;
+- treat unsupported service workers and registration/check failures as silent progressive-enhancement fallbacks;
+- export no calculator state and write nothing to local storage, IndexedDB, or Cache Storage directly.
+
+#### `src/components/UpdateNotice.tsx`
+
+Create one presentation component that subscribes to the external update snapshot with `useSyncExternalStore` or an equivalent tear-free subscription. It shall render nothing for `idle` and otherwise render:
+
+- a fixed container with `role="status"` and `aria-live="polite"`;
+- visible `Update available` text;
+- a native `Update app` button while ready;
+- a disabled `Updating…` button while applying.
+
+The notice shall not autofocus, trap focus, include a dismiss control, or own registration logic.
+
+#### `src/App.tsx`
+
+Render `UpdateNotice` once at the application-shell boundary, outside the mode-specific calculators. Preserve both calculators' mounting, mode retention, and state ownership.
+
+#### `src/styles.css`
+
+Add a fixed bottom notice using the existing dark surface, border, blue action, focus ring, type tokens, and `env(safe-area-inset-bottom)`. Keep the notice within the viewport and add invariant page-end clearance sufficient for its maximum height so it cannot cover the final calculator control. The notice appearing or disappearing shall not change calculator-card geometry or document width. Its action remains at least 44 by 44 CSS pixels at 320 CSS pixels and above.
+
+#### `src/pwa.test.ts`, `src/components/UpdateNotice.test.tsx`, and `src/App.pwa.test.tsx`
+
+Mock `virtual:pwa-register` and timers. Cover the S6-AC-006 registration, trigger, throttle, subscription, ready, applying, rejection, unsupported, focus, singleton, and calculator-state-preservation contracts. Do not attempt to install a real worker in jsdom.
 
 ### Document metadata
 
@@ -219,7 +264,8 @@ The verifier shall not export or duplicate calculator-domain logic.
 #### Build document checks
 
 - Require `dist/index.html`.
-- Require the expected title, black theme-color metadata, generated manifest link, Apple touch icon, generated stylesheet, generated JavaScript entry, and injected service-worker registration.
+- Require the expected title, black theme-color metadata, generated manifest link, Apple touch icon, generated stylesheet, and generated JavaScript entry.
+- Require no injected `registerSW.js`; registration must be bundled through the application-owned virtual-module import.
 - Resolve local references against `https://example.test/plate-calculator/` and require every application path to begin `/plate-calculator/`.
 - Fail origin-root paths such as `/assets/`, `/manifest.webmanifest`, `/sw.js`, and `/apple-touch-icon.png`.
 - Permit document-standard URLs such as the HTML namespace only when they are not fetched runtime dependencies.
@@ -251,7 +297,8 @@ The generator makes all pixels opaque; the verifier shall inflate IDAT data and 
 - Require the service-worker file to be nonempty.
 - Require every built HTML, JavaScript, CSS, manifest, and required PNG basename or normalized relative path to appear in the precache manifest or plugin-generated inclusion.
 - Require navigation fallback behavior for the application entry.
-- Require automatic-update configuration to produce skip-waiting and client-claim behavior in the generated worker.
+- Require prompt registration configuration, disabled injected registration, and one application-owned virtual registration import.
+- Require the generated worker and helper protocol needed to promote a waiting worker only after the update action.
 - Require obsolete-cache cleanup configuration or generated behavior.
 - Reject precache references to `src/`, `specs/`, `screenshots/`, `.github/`, `.git/`, `node_modules/`, `coverage/`, or test files.
 - Reject required remote runtime URLs in the built HTML and CSS and recognizable remote `fetch`, dynamic import, font, stylesheet, script, or image references in built JavaScript.
@@ -263,7 +310,7 @@ Do not assert content hashes, minifier formatting, Workbox variable names, or th
 Read `vite.config.ts`, `package.json`, and `.github/workflows/deploy-pages.yml` to verify:
 
 - exact base and manifest values;
-- `generateSW`, auto-update, development-disabled, and cleanup choices;
+- `generateSW`, prompt registration, disabled injection, development-disabled, and cleanup choices;
 - exact pnpm declaration and required scripts;
 - push-to-main and manual workflow triggers;
 - one Pages concurrency group with cancellation enabled;
@@ -325,17 +372,9 @@ The `deploy` job shall:
 
 No repository secret is required. Use the workflow-provided GitHub token with the declared Pages and OIDC permissions.
 
-### Existing application code and tests
+### Existing calculator code and tests
 
-Do not modify:
-
-- `src/domain/**`;
-- `src/App.tsx` or `src/App.test.tsx`;
-- `src/components/**`;
-- `src/styles.css`;
-- any Slice 001 through Slice 005 application acceptance criterion.
-
-The release layer wraps the completed static application. A need to change calculator code indicates scope drift or a discovered regression and shall be reported before proceeding.
+Do not modify `src/domain/**`, either calculator component, the barbell component, or any Slice 001 through Slice 005 calculation and interaction acceptance criterion. `App.tsx`, the focused `App.pwa.test.tsx` integration test, and `styles.css` may change only to mount, verify, and present the update notice. A need to alter calculator-owned state or domain behavior indicates scope drift and shall be reported before proceeding.
 
 ## Build and URL behavior
 
@@ -362,7 +401,7 @@ No `404.html` is planned because the application exposes no route-dependent deep
 
 ## Registration and update state model
 
-The delivery state is external to React:
+Registration mechanics remain outside calculator state. React observes only the external update snapshot:
 
 ```text
 unsupported or registration failed
@@ -374,19 +413,31 @@ supported + first online load
   -> worker active and page controlled
   -> offline-ready boundary satisfied
 
-controlled build A + online build B discovered
+controlled build A + contracted check discovers online build B
   -> build B worker installing with complete B precache
-  -> build B active and claiming clients
-  -> current document may finish on already-loaded A assets
-  -> next navigation/reload receives coherent build B
+  -> build B waiting; snapshot = ready
+  -> fixed Update available notice; build A and calculator state unchanged
+  -> user activates Update app; snapshot = applying
+  -> helper promotes build B and reloads exactly once
+  -> fresh document receives coherent build B
   -> obsolete application caches removed
+
+check or registration failure
+  -> snapshot remains idle
+  -> current online or cached application remains usable
+
+activation failure before reload
+  -> snapshot returns from applying to ready
+  -> Update app is retryable
 ```
 
-No delivery state enters React component state. No calculator state is written to browser storage.
+The external store contains only `idle`, `ready`, or `applying`. No calculator state is written to browser storage.
 
 ## Failure behavior
 
 - A service-worker registration failure shall appear only through browser diagnostics and shall not block React rendering.
+- A failed update check shall not display the notice or affect cached offline operation.
+- A failed update activation shall restore the ready notice and permit retry without changing calculator state.
 - A missing or malformed PWA artifact shall fail `pnpm run verify:pwa` and the workflow before upload.
 - Typecheck, test, build, or verification failure shall prevent the upload and deployment jobs.
 - A failed deploy shall leave the previously deployed Pages version in place; no rollback code is introduced.
@@ -402,7 +453,7 @@ No delivery state enters React component state. No calculator state is written t
 | S6-AC-003 | `verify:pwa` resolves every built HTML, manifest, icon, and registration reference against `/plate-calculator/` and rejects origin-root escapes. |
 | S6-AC-004 | `verify:pwa` discovers the generated worker and confirms every emitted runtime asset is precached while prohibited repository paths are absent. |
 | S6-AC-005 | `verify:pwa` rejects remote runtime resource references; the production browser run confirms no failed required request. |
-| S6-AC-006 | Config and built-worker checks prove auto-update, client claim, skip waiting, and cleanup; the two-build browser fixture proves replacement behavior. |
+| S6-AC-006 | Unit/component tests prove singleton registration, all check triggers, throttling, notice state, focus behavior, user-controlled activation, failure recovery, and calculator-state preservation; config/artifact checks prove prompt registration and cleanup; the two-build browser fixture proves coherent replacement. |
 | S6-AC-007 | Real-browser cached offline reload verifies the controlled app launches at the initial 45 lb target state. |
 | S6-AC-008 | Real-browser offline target workflow exercises rounding, invalid recovery, greedy output, Reduce plates, controls, and visualization. |
 | S6-AC-009 | Real-browser offline reverse workflow exercises switching, add/remove/reset, duplicates, Optimize, overflow, and focus. |
@@ -480,22 +531,28 @@ Serve the production build and open the project-path URL, not the preview origin
 1. Use a fresh context with service workers unavailable or registration deliberately blocked while the network remains online.
 2. Open `/plate-calculator/`.
 3. Confirm both calculator modes and all ordinary interactions remain functional.
-4. Confirm there is no install, offline, error, or update UI.
+4. Confirm there is no install, offline, error, or update UI when registration is unsupported or fails.
 
 ### Update lifecycle fixture
 
 Create temporary build A and build B directories outside tracked source. Build A is the normal output. Build B shall be produced from a temporary copy with one harmless build-only document marker changed so its HTML revision differs; do not modify or revert tracked user files to create the fixture.
 
-Serve A and establish control. Replace the served directory atomically with B at the same origin and `/plate-calculator/` scope, restore online access, and trigger a normal reload/update check. Verify:
+Serve A and establish control. Replace the served directory atomically with B at the same origin and `/plate-calculator/` scope. Verify:
 
 - B's worker installs with B's complete precache;
-- B activates without application UI;
-- the current page is not forcibly interrupted by application code;
-- the next navigation/reload returns marker B;
+- registration, `online`, foreground return, and the rescheduled 60-minute timer each trigger the common check boundary;
+- checks within five minutes are coalesced;
+- B waits while the current page and its calculator state remain on A;
+- one fixed `Update available` notice appears without focus movement or calculator-card geometry change;
+- ignoring the notice leaves A fully usable;
+- activating `Update app` shows `Updating…`, promotes B, and reloads exactly once;
+- the reloaded document returns marker B in the established fresh calculator state;
 - all B runtime assets succeed;
 - old application precache entries are removed;
 - no unrelated cache is removed;
 - no mixed-version resource or console error occurs.
+
+Repeat the fixture with an offline/failed check and with a rejected activation promise. Confirm no notice for the failed check, preserved cached behavior, and a retryable notice after activation failure.
 
 Temporary fixture files shall remain outside the repository and be deleted after verification.
 
@@ -528,19 +585,22 @@ If Pages has not been enabled for GitHub Actions, stop and report that exact ext
 - **Development cache interference:** leave PWA development support disabled and always use a fresh production browser context.
 - **Missing icon precache:** list icons in both manifest/includeAssets and verify their emitted paths and worker references.
 - **Unsafe maskable crop:** generate within the central 80 percent and verify no mark pixel escapes it.
-- **Update loses an active calculation:** avoid the virtual auto-reload helper; permit the current document to finish and use the new shell on navigation/reload.
+- **Update loses an active calculation without consent:** use prompt registration and call the reload helper only from `Update app`; prove ignored notices leave state unchanged.
+- **Installed app misses long-lived updates:** check at registration, reconnection, foreground return, and hourly while visible, with no-store validation of the worker URL.
+- **Duplicate checks or registration under Strict Mode:** keep initialization, listeners, timer, timestamp, and registration outside React and guard them once.
+- **Notice covers controls or moves layout:** use a fixed notice plus invariant page-end clearance and browser rectangle checks at 320, 402 by 874, and desktop widths.
 - **Mixed hashed assets:** require build B's full precache before activation and verify the next load uses only B.
 - **Overbroad cache deletion:** use Workbox application-cache cleanup and verify an unrelated sentinel cache survives the fixture.
 - **Artifact verifier brittleness:** discover hashed paths and inspect stable semantics; do not match minified variable names or exact hashes.
 - **Workflow supply-chain drift:** pin official action revisions where practical and label their reviewed major versions.
 - **Accidental deployment:** keep GitHub writes and Pages settings outside implementation authorization.
-- **Scope growth:** reject install/update UI, persistence, routing, remote runtime resources, analytics, and calculator changes.
+- **Scope growth:** permit only the contracted update notice; reject install UI, persistence, routing, remote runtime resources, analytics, and calculator changes.
 
 ## Deviations and unresolved decisions
 
 No ambiguity or contradiction prevents deterministic implementation.
 
-The plan makes one explicit refinement to the automatic-update wording: `registerType: 'autoUpdate'` controls worker installation and activation, but application code will not import the helper that automatically reloads open tabs. This preserves the slice's requirement that an active calculation not be interrupted while ensuring the next navigation or reload receives the new coherent build.
+This amendment supersedes the original `autoUpdate`/injected-registration decision. Prompt registration preserves the current document until the user explicitly activates `Update app`, while application-owned registration supplies deterministic update detection and a safe reload boundary.
 
 The exact resolved `vite-plugin-pwa` package version is intentionally assigned by `pnpm add -D vite-plugin-pwa` and pinned by `pnpm-lock.yaml`; runtime behavior is fixed by the configuration and artifact checks rather than an unverified version guessed in this plan.
 
@@ -548,24 +608,24 @@ GitHub Pages enablement and the first production deployment are external release
 
 ## Implementation order
 
-1. Change the plan status to `Approved` when implementation is authorized.
-2. Add the pnpm declaration, scripts, PWA dependency, and lockfile update.
-3. Add deterministic icon generation and create the four committed PNG assets.
-4. Add Vite base, manifest, generated service worker, precache, and update configuration.
-5. Add project-path-safe document metadata.
-6. Add the Pages workflow.
-7. Add the production artifact and workflow verifier.
-8. Run frozen install, deterministic icon, typecheck, test, build, and artifact verification commands.
-9. Run online, offline, fallback, responsive, and update-lifecycle browser workflows.
+1. Change the amendment status to `Approved` when implementation is authorized.
+2. Change Vite registration from injected `autoUpdate` to application-owned `prompt` and add the virtual-module type reference.
+3. Implement the singleton external update store, contracted check triggers, throttling, and activation failure recovery.
+4. Add and mount the update notice without changing calculator ownership.
+5. Add fixed-notice styling and invariant page-end clearance.
+6. Update `verify:pwa` for prompt registration and application-owned registration artifacts.
+7. Add unit/component tests for S6-AC-006 and keep every earlier test green.
+8. Run frozen install, typecheck, test, build, and artifact verification commands.
+9. Run online, offline, unsupported, responsive, and two-build update-lifecycle browser workflows.
 10. Mark the slice and plan `Approved and implemented` after all local checks pass.
-11. Commit, push, configure Pages, and verify deployment only with explicit authorization.
+11. Commit, push, and verify deployment only with explicit authorization.
 
 ## Plan completion condition
 
 This plan is ready for implementation approval when:
 
 - every created or modified file is identified;
-- manifest, icon, base-path, registration, cache, update, and workflow choices are exact;
+- manifest, icon, base-path, registration, cache, update-check, notice, activation, failure, and workflow choices are exact;
 - artifact-verifier responsibilities are deterministic;
 - S6-AC-001 through S6-AC-012 map to automated or real-browser evidence;
 - local and deployed verification sequences are separated by authorization boundary;
