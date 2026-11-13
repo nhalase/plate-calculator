@@ -30,7 +30,7 @@ This slice completes the functional visualization requirements. Broader aestheti
 - REQ-UI-004, REQ-UI-006, and REQ-UI-007
 - REQ-UX-001
 
-See [requirements.md](../requirements.md), [architecture.md](../architecture.md), [Slice 001](001-calculation-engine.md), [Slice 002](002-target-to-plates-ui.md), and [Slice 003](003-plates-to-total-and-mode-switching.md).
+See [requirements.md](../../../specs/), [architecture.md](../../../../docs/architecture.md), [Slice 001](../2026-08-17-001-calculation-engine/proposal.md), [Slice 002](../2026-08-17-002-target-to-plates-ui/proposal.md), and [Slice 003](../2026-08-17-003-plates-to-total-and-mode-switching/proposal.md).
 
 ## Scope boundary
 

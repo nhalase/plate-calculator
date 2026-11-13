@@ -24,7 +24,7 @@ This slice integrates the Slice 001 calculation engine with a React UI. It defin
 - REQ-UI-007
 - REQ-UX-001
 
-See [requirements.md](../requirements.md), [architecture.md](../architecture.md), and [Slice 001](001-calculation-engine.md).
+See [requirements.md](../../../specs/), [architecture.md](../../../../docs/architecture.md), and [Slice 001](../2026-08-17-001-calculation-engine/proposal.md).
 
 ## Scope boundary
 
