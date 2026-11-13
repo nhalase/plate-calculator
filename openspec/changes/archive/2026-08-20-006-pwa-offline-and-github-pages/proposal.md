@@ -17,9 +17,9 @@ This slice packages and publishes the already completed application. It shall no
 - Slice 003 is approved, implemented, and verified.
 - Slice 004 is approved, implemented, and verified.
 - Slice 005 is approved, implemented, and verified.
-- [ADR-001: Fully client-side application](../adr/001-client-side-only.md) remains binding.
-- [ADR-002: React, TypeScript, Vite, Vitest, and plain CSS](../adr/002-react-typescript-vite.md) remains binding.
-- [ADR-003: Offline PWA on GitHub Pages](../adr/003-pwa-github-pages.md) governs the delivery model.
+- [ADR-001: Fully client-side application](../../../../docs/adr/001-client-side-only.md) remains binding.
+- [ADR-002: React, TypeScript, Vite, Vitest, and plain CSS](../../../../docs/adr/002-react-typescript-vite.md) remains binding.
+- [ADR-003: Offline PWA on GitHub Pages](../../../../docs/adr/003-pwa-github-pages.md) governs the delivery model.
 
 ## Requirements covered
 

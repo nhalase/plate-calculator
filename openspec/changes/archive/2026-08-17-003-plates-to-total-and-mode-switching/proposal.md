@@ -25,7 +25,7 @@ This slice extends the Slice 002 browser application. It defines the complete ob
 - REQ-UI-004, REQ-UI-005, REQ-UI-007, and REQ-UI-008
 - REQ-UX-001
 
-See [requirements.md](../requirements.md), [architecture.md](../architecture.md), [Slice 001](001-calculation-engine.md), and [Slice 002](002-target-to-plates-ui.md).
+See [requirements.md](../../../specs/), [architecture.md](../../../../docs/architecture.md), [Slice 001](../2026-08-17-001-calculation-engine/proposal.md), and [Slice 002](../2026-08-17-002-target-to-plates-ui/proposal.md).
 
 AC-CALC-005-3 and AC-UI-004-2 require both an immediate total update and an immediate visualization update. This slice satisfies the total and textual selected-plate behavior. Their graphical-visualization portion remains explicitly pending until the shared visualization slice.
 

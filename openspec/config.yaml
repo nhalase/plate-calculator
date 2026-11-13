@@ -1,0 +1,36 @@
+schema: spec-driven
+
+# Project context: constraints that guide every OpenSpec artifact.
+# Background docs: docs/product.md, docs/architecture.md, docs/adr/.
+context: |
+  Barbell Plate Calculator: a mobile-first, offline-capable React PWA for loading a barbell between sets.
+
+  Fixed domain (do not make configurable without an explicit change and ADR):
+  - 45 lb bar; symmetric loading; unlimited 45/35/25/10/5/2.5 lb plates; pounds only.
+
+  Binding architecture decisions (docs/adr/):
+  - ADR-001: fully client-side. No backend, database, auth, or runtime API.
+  - ADR-002: React, TypeScript, Vite, Vitest, plain CSS. No router, global state library,
+    CSS framework, or component library without a new requirement and ADR.
+  - ADR-003: offline PWA via vite-plugin-pwa, hosted on GitHub Pages at /plate-calculator/.
+    No remote scripts, styles, fonts, or CDNs.
+  - Calculation rules live only in src/domain and must not import React, browser APIs,
+    storage, or PWA modules. Components consume domain functions and never duplicate rules.
+
+  Out of scope unless a change explicitly adds it: accounts, sync, persistence, favorites,
+  kilograms, configurable equipment, constrained inventory, asymmetric loading, workout
+  features, advertisements.
+
+  Traceability: requirements carry stable IDs (REQ-<AREA>-NNN) and scenarios carry
+  acceptance-criteria IDs (AC-<AREA>-NNN-N). Tests reference these IDs in their names.
+
+rules:
+  specs:
+    - Give every new requirement the next unused REQ-<AREA>-NNN ID in parentheses at the end of its description; never reuse or renumber IDs
+    - Prefix each new scenario name with its AC-<AREA>-NNN-N ID
+  design:
+    - State which domain functions are used or added and confirm UI code does not reimplement calculation rules
+    - Call out any effect on offline behavior or the precached application shell
+  tasks:
+    - Include Vitest tests named with the applicable AC IDs
+    - End with verification tasks for pnpm run typecheck, pnpm test, pnpm run build, and pnpm run verify:pwa

@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 005: UI Polish](../slices/005-ui-polish.md)
+[Slice 005: UI Polish](../2026-08-20-005-ui-polish/proposal.md)
 
 This plan implements the approved Slice 005 visual contract without changing product behavior from Slices 001 through 004.
 

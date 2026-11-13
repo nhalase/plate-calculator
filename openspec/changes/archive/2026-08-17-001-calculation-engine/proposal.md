@@ -15,7 +15,7 @@ Implement and unit-test all framework-independent barbell calculation rules as p
 - REQ-CALC-006
 - the ordering portion of REQ-UI-004
 
-See [requirements.md](../requirements.md) and [architecture.md](../architecture.md).
+See [requirements.md](../../../specs/) and [architecture.md](../../../../docs/architecture.md).
 
 ## Deliverables
 

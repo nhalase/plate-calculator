@@ -30,7 +30,7 @@ The primary visual-reference viewport for this slice is an iPhone 17 Pro-sized b
 - REQ-UX-001
 - All accepted behavioral and accessibility contracts in Slices 002 through 004
 
-See [product.md](../product.md), [requirements.md](../requirements.md), [architecture.md](../architecture.md), [Slice 002](002-target-to-plates-ui.md), [Slice 003](003-plates-to-total-and-mode-switching.md), and [Slice 004](004-shared-barbell-visualization.md).
+See [product.md](../../../../docs/product.md), [requirements.md](../../../specs/), [architecture.md](../../../../docs/architecture.md), [Slice 002](../2026-08-17-002-target-to-plates-ui/proposal.md), [Slice 003](../2026-08-17-003-plates-to-total-and-mode-switching/proposal.md), and [Slice 004](../2026-08-17-004-shared-barbell-visualization/proposal.md).
 
 ## Scope boundary
 

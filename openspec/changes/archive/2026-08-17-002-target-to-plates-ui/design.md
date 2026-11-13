@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 002: Target Weight to Plates UI](../slices/002-target-to-plates-ui.md)
+[Slice 002: Target Weight to Plates UI](../2026-08-17-002-target-to-plates-ui/proposal.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
 

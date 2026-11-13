@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 006: PWA, Offline Operation, and GitHub Pages](../slices/006-pwa-offline-and-github-pages.md)
+[Slice 006: PWA, Offline Operation, and GitHub Pages](../2026-08-20-006-pwa-offline-and-github-pages/proposal.md)
 
 This plan implements the amended Slice 006 release boundary without changing the completed calculator domain or calculator state model. It adds only the contracted update notice and explicit reload action to the Slice 005 interface.
 

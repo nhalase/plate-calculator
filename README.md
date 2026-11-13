@@ -87,11 +87,13 @@ Pushes to `main` run the GitHub Pages workflow in [`.github/workflows/deploy-pag
 
 ## Specifications
 
-This project is developed in vertical slices from explicit product and engineering specifications:
+This project uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven development:
 
-- [Product specification](specs/product.md)
-- [Requirements](specs/requirements.md)
-- [Architecture](specs/architecture.md)
-- [Architecture decision records](specs/adr)
-- [Slice specifications](specs/slices)
-- [Implementation plans](specs/plans)
+- [Capability specs](openspec/specs) — the current requirements, with `REQ-*` and `AC-*` IDs referenced by tests
+- [Archived changes](openspec/changes/archive) — the original vertical slices (proposal) and implementation plans (design)
+- [Project context and rules](openspec/config.yaml)
+- [Product specification](docs/product.md)
+- [Architecture](docs/architecture.md)
+- [Architecture decision records](docs/adr)
+
+Start new work with `/openspec-propose` in Claude Code, or `openspec new change <name>`. Run `openspec validate --all --strict` to check specs.

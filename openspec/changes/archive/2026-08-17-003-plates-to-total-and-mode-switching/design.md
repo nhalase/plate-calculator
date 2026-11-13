@@ -6,7 +6,7 @@ Approved and implemented
 
 ## Source specification
 
-[Slice 003: Plates to Total Weight and Mode Switching](../slices/003-plates-to-total-and-mode-switching.md)
+[Slice 003: Plates to Total Weight and Mode Switching](../2026-08-17-003-plates-to-total-and-mode-switching/proposal.md)
 
 This plan implements the approved behavioral contract without adding product behavior.
 
